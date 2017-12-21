@@ -1,5 +1,0 @@
-TODO vraag bij L2?
-
-IPv6 fragmentation gebeurt niet bij TCP zelfs bij >1500 MTU op STA1 en AP
-Bij UDP helpt iperf frame length (-l) maar is UDP only
-Bij TCP moet de MSS hoger maar iperf -M flag helpt enkel om MSS lager in te stellen: network stack kiest MSS als minimum van gevraagde MSS en (Path MTU - 40)?
