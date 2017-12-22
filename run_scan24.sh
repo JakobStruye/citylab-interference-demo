@@ -20,4 +20,4 @@ echo disable > $ATHPATH/spectral_scan_ctl
 echo "Spectral scan disabled"
 cat $ATHPATH/spectral_scan0 > /home/jstruye/output/$TIMESTAMP
 echo "Output copied"
-
+chown -R jstruye:jstruye /home/jstruye/output
