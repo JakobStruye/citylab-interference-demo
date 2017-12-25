@@ -2,7 +2,10 @@
 
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 
-ATHPATH=/sys/kernel/debug/ieee80211/phy1/ath10k
+ATHPATH=/sys/kernel/debug/ieee80211/phy0/ath10k
+if [ ! -d "$ATHPATH" ]; then
+    ATHPATH=/sys/kernel/debug/ieee80211/phy1/ath10k
+fi
 devname=wlp1s0
 
 echo "Resetting $devname"
