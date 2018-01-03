@@ -93,13 +93,17 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
 
 def process_point(day, hour, minute):
     signals = []  # Fill with every nf+rssi of dump
-    file_name = directory + ('/' if not directory.endswith('/') else '') + day + '_' + str(hour).zfill(2) + '-' + str(
+    file_name = directory + day + '_' + str(hour).zfill(2) + '-' + str(
         minute).zfill(2)
+    print file_name
     signalstr = subprocess.check_output(
         ['./fft_get_max_rssi.out', file_name]) if not channel_number else subprocess.check_output(
         ['./fft_get_max_rssi.out', file_name, channelnr_map[channel_number]])
     for line in signalstr.splitlines():
         signals.append(int(line))
+    if len(signals) == 1:
+        return None
+    signals = [signal for signal in signals if signal <=0]
     signals.sort()
     signals.reverse()
     return signals[filter_num]
@@ -108,6 +112,9 @@ def process_point(day, hour, minute):
 if __name__ == '__main__':
 
     maxes = []
+
+    start_hour = 11
+    end_hour = 15
 
     if (len(sys.argv) < 6):
         print "Usage: python plot_rssi.py dump_directory date first_minute filter_num channel_number [prev_day next_day]\n\
@@ -125,6 +132,7 @@ if __name__ == '__main__':
     fix_endpoints = len(sys.argv) >= 8
 
     directory = sys.argv[1]
+    directory = directory + ('/' if not directory.endswith('/') else '')
     day = sys.argv[2]
     first_minute = int(sys.argv[3])
     filter_num = int(sys.argv[4])
@@ -134,37 +142,47 @@ if __name__ == '__main__':
         prev_day = sys.argv[6]
         next_day = sys.argv[7]
 
+    missings = []
+    #TODO NONE POINT FIX FOR ENDPOINTS
     if fix_endpoints:
         for hour in range(20,24,1):
-            for (minute) in range(first_minute, 60, 2):
+            for (minute) in range(first_minute, 60, 1):
                 max_point = process_point(prev_day, hour, minute)
                 maxes.append(max_point)
 
-    for (hour, minute) in itertools.product(range(24), range(first_minute, 60, 2)):
+    for (hour, minute) in itertools.product(range(start_hour,end_hour), range(first_minute, 60, 1)):
         max_point = process_point(day, hour, minute)
-        maxes.append(max_point)
+        if max_point:
+            maxes.append(max_point)
+        else:
+            missings.append((hour,minute))
+
 
     if fix_endpoints:
         for hour in range(0,4,1):
 
-            for (minute) in range(first_minute, 60, 2):
+            for (minute) in range(first_minute, 60, 1):
                 max_point = process_point(next_day, hour, minute)
                 maxes.append(max_point)
 
     # Endpoints fix has 2 hours of additional data
-    x = np.linspace(0, 24, 720) if not fix_endpoints else np.linspace(-4, 28, 960)
-
+    x = np.linspace(start_hour, end_hour, 60 * (end_hour - start_hour)) if not fix_endpoints else np.linspace(-4, 28, 1920)
+    for (hour,minute) in missings:
+        x = np.delete(x, hour * 60 + minute)
     y = np.asarray(maxes)
+    print x.shape
+    print y.shape
 
     y_smooth = savitzky_golay(y, 101, 3)
     y_smooth2 = savitzky_golay(y, 361, 3)
-    raw = plt.plot(x, y, color='blue', alpha=0.3)
+    fig = plt.figure()
+    raw = plt.plot(x, y, marker='o', color='blue', alpha=0.3)
     smooth1 = plt.plot(x, y_smooth, color='red')
     smooth2 = plt.plot(x, y_smooth2, color='green')
     # Ticks at even hours
     plt.xticks(np.arange(0, 25, 2))
     # Cut off endpoints fix; only show current day
-    plt.xlim([0, 24])
+    plt.xlim([start_hour, end_hour])
     plt.xlabel('Time of day (hours)')
     plt.ylabel('Smoothed received signal strength (dBm)')
 
@@ -175,4 +193,5 @@ if __name__ == '__main__':
     plt.ylim([plt.gca().get_ylim()[0],plt.gca().get_ylim()[1]+15])
 
     plt.legend(handles=[raw_label, smooth1_label, smooth2_label])
-    plt.show()
+    #plt.show()
+    fig.savefig(directory + day + "_" + str(channel_number))
