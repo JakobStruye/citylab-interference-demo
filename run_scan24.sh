@@ -1,10 +1,22 @@
 #!/bin/bash
 
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+CURPHY="phy"
 
 ATHPATH=/sys/kernel/debug/ieee80211/phy0/ath10k
+PHY="0"
 if [ ! -d "$ATHPATH" ]; then
     ATHPATH=/sys/kernel/debug/ieee80211/phy1/ath10k
+    PHY="1"
+fi
+if [ -d $CURPHY ]
+then
+    PREVPHY=$(cat $CURPHY)
+else
+    PREVPHY=$PHY
+if [ PHY != PREVPHY ]
+then
+    date >> physwap
 fi
 devname=wlp1s0
 
