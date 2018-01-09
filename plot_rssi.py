@@ -13,9 +13,7 @@ import matplotlib.patches as mpatches
 
 
 ### REMOVE SECONDS FROM FILENAMES WITH
-### find . -type f -name '???????????????????' -exec rename -n 's/.{3}$//' {} +
-### Remove -n for non-dry run
-
+### python filename_fixer.py DIR
 
 
 
