@@ -1,11 +1,30 @@
 #!/bin/bash
 
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+CURPHY="/home/jstruye/AdvNetwLab/phy"
+PHYSWAP="/home/jstruye/AdvNetwLab/physwap"
 
 ATHPATH=/sys/kernel/debug/ieee80211/phy0/ath10k
+PHY="0"
 if [ ! -d "$ATHPATH" ]; then
     ATHPATH=/sys/kernel/debug/ieee80211/phy1/ath10k
+    PHY="1"
 fi
+echo $PHY
+
+if [ -e $CURPHY ]
+then
+    PREVPHY=$(cat $CURPHY)
+else
+    PREVPHY=$PHY
+fi
+
+if [ $PHY != $PREVPHY ]
+then
+    date >> $PHYSWAP
+fi
+echo $PHY > $CURPHY
+
 devname=wlp1s0
 
 echo "Resetting $devname"
