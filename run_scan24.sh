@@ -1,8 +1,8 @@
 #!/bin/bash
-ps aux | grep run_scan | wc -l
 if [ $(ps aux | grep run_scan | wc -l) -gt 4 ]; then
     exit
 fi
+
 TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
 CURPHY="/home/jstruye/AdvNetwLab/phy"
 PHYSWAP="/home/jstruye/AdvNetwLab/physwap"
@@ -13,10 +13,12 @@ if [ ! -d "$ATHPATH" ]; then
     ATHPATH=/sys/kernel/debug/ieee80211/phy1/ath10k
     PHY="1"
 fi
+
 if [ ! -d "$ATHPATH" ]; then
     #Chip down
     reboot
 fi
+
 echo $PHY
 
 if [ -e $CURPHY ]
@@ -37,6 +39,7 @@ devname=wlp1s0
 echo "Resetting $devname"
 ip link set dev $devname down
 until ip link set dev $devname up; do echo "Retrying"; done;
+
 echo "Reset $devname"
 echo background > $ATHPATH/spectral_scan_ctl
 echo trigger > $ATHPATH/spectral_scan_ctl

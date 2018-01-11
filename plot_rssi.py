@@ -13,10 +13,7 @@ import matplotlib.patches as mpatches
 
 
 ### REMOVE SECONDS FROM FILENAMES WITH
-### ls -d ??????????????????? | xargs rename 's/.{3}$//'
-
-
-
+### python filename_fixer.py DIR
 
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     r"""Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
@@ -113,8 +110,8 @@ if __name__ == '__main__':
 
     maxes = []
 
-    start_hour = 11
-    end_hour = 15
+    start_hour = 0
+    end_hour = 24
 
     if (len(sys.argv) < 6):
         print "Usage: python plot_rssi.py dump_directory date first_minute filter_num channel_number [prev_day next_day]\n\
@@ -194,4 +191,5 @@ if __name__ == '__main__':
 
     plt.legend(handles=[raw_label, smooth1_label, smooth2_label])
     #plt.show()
-    fig.savefig(directory + day + "_" + str(channel_number))
+
+    fig.savefig(directory + "../images/" + day + "_" + str(channel_number))
