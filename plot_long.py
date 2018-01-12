@@ -129,18 +129,26 @@ if __name__ == '__main__':
                These are only used in calculations and not actually plotted."
         exit(0)
 
-    if len(sys.argv) == 7:
-        print "Either supply both prev_day and next_day or neither"
-        exit(1)
+    #if len(sys.argv) == 7:
+    #    print "Either supply both prev_day and next_day or neither"
+    #    exit(1)
 
-    fix_endpoints = len(sys.argv) >= 8
+    fix_endpoints = False#len(sys.argv) >= 8
 
-    directory = sys.argv[1]
+    idx = 1
+    directory = sys.argv[idx]
     directory = directory + ('/' if not directory.endswith('/') else '')
-    day = sys.argv[2]
-    first_minute = int(sys.argv[3])
-    filter_num = int(sys.argv[4])
-    channel_number = int(sys.argv[5]) if sys.argv[5] != '0' else None
+    days = []
+    idx += 1
+    while len(sys.argv[idx]) > 3:
+        days.append(sys.argv[idx])
+        idx += 1
+
+    first_minute = int(sys.argv[idx])
+    idx += 1
+    filter_num = int(sys.argv[idx])
+    idx += 1
+    channel_number = int(sys.argv[idx]) if sys.argv[idx] != '0' else None
 
     if fix_endpoints:
         prev_day = sys.argv[6]
@@ -156,13 +164,15 @@ if __name__ == '__main__':
                     maxes.append(max_point)
                 else:
                     missings.append((hour-24, minute))
-
-    for (hour, minute) in itertools.product(range(start_hour,end_hour), range(first_minute, 60, 1)):
-        max_point = process_point(day, hour, minute)
-        if max_point:
-            maxes.append(max_point)
-        else:
-            missings.append((hour,minute))
+    counter = 0
+    for day in days:
+        for (hour, minute) in itertools.product(range(start_hour,end_hour), range(first_minute, 60, 1)):
+            max_point = process_point(day, hour, minute)
+            if max_point:
+                maxes.append(max_point)
+            else:
+                missings.append((counter,hour,minute))
+        counter += 1
 
 
     if fix_endpoints:
@@ -176,24 +186,25 @@ if __name__ == '__main__':
                     missings.append((hour+24, minute))
 
     # Endpoints fix has 2 hours of additional data
-    x = np.linspace(start_hour, end_hour, 60 * (end_hour - start_hour)) if not fix_endpoints else np.linspace(-4, 28, 1920)
-    for (hour,minute) in missings:
-        x = np.delete(x, hour * 60 + minute)
+    x = np.linspace(start_hour, len(days) * end_hour, len(days) * 60 * (end_hour - start_hour)) if not fix_endpoints else np.linspace(-4, 28, 1920)
+    for (day,hour,minute) in missings:
+        x = np.delete(x, day * 60 * 24 + hour * 60 + minute)
     y = np.asarray(maxes)
 
     y_smooth = savitzky_golay(y, 101, 3)
     y_smooth2 = savitzky_golay(y, 361, 3)
     fig = plt.figure()
-    raw = plt.plot(x, y, marker='o', color='blue', alpha=0.3)
-    smooth1 = plt.plot(x, y_smooth, color='red')
+    #raw = plt.plot(x, y, marker='o', color='blue', alpha=0.3)
+    #smooth1 = plt.plot(x, y_smooth, color='red')
     smooth2 = plt.plot(x, y_smooth2, color='green')
     # Ticks at even hours
-    plt.xticks(np.arange(0, 25, 2))
+    #plt.xticks(np.arange(0, 24 * len(days) + 1, 2))
     # Cut off endpoints fix; only show current day
-    plt.xlim([start_hour, end_hour])
+    plt.xlim([start_hour, len(days) * end_hour])
     plt.xlabel('Time of day (hours)')
     plt.ylabel('Smoothed received signal strength (dBm)')
-
+    for i in range(len(days)):
+        plt.axvline(x=(i*24))
     raw_label = mpatches.Patch(color='blue', label='Highest signal strength (top %d removed)' % filter_num)
     smooth1_label = mpatches.Patch(color='red', label='Savitzky-Golay filtered, order 3, window size 101')
     smooth2_label = mpatches.Patch(color='green', label='Savitzky-Golay filtered, order 3, window size 361')
@@ -201,5 +212,5 @@ if __name__ == '__main__':
     plt.ylim([plt.gca().get_ylim()[0],plt.gca().get_ylim()[1]+15])
 
     plt.legend(handles=[raw_label, smooth1_label, smooth2_label])
-    #plt.show()
-    fig.savefig(directory + "../images/"  + day + "_" + str(channel_number))
+    plt.show()
+    #fig.savefig(directory + "../images/"  + day + "_" + str(channel_number))

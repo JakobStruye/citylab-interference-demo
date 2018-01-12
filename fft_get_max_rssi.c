@@ -421,7 +421,7 @@ int main(int argc, char *argv[]) {
     }
 
     if (read_scandata(ss_name) < 0) {
-        fprintf(stderr, "Couldn't read scanfile ...\n");
+        //fprintf(stderr, "Couldn't read scanfile ...\n");
         return -1;
     }
 
