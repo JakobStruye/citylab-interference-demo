@@ -100,6 +100,7 @@ def process_point(day, hour, minute):
             ['./fft_get_max_rssi.out', file_name]) if not channel_number else subprocess.check_output(
             ['./fft_get_max_rssi.out', file_name, channelnr_map[channel_number]])
     except:
+        print file_name
         return None
     for line in signalstr.splitlines():
         signals.append(int(line))
@@ -166,6 +167,7 @@ if __name__ == '__main__':
                     missings.append((hour-24, minute))
     counter = 0
     for day in days:
+        print day
         for (hour, minute) in itertools.product(range(start_hour,end_hour), range(first_minute, 60, 1)):
             max_point = process_point(day, hour, minute)
             if max_point:
@@ -214,3 +216,6 @@ if __name__ == '__main__':
     plt.legend(handles=[raw_label, smooth1_label, smooth2_label])
     plt.show()
     #fig.savefig(directory + "../images/"  + day + "_" + str(channel_number))
+    with open('smooth.out', 'w+') as f:
+        for line in y_smooth2:
+            f.write(str(line) + '\n')
