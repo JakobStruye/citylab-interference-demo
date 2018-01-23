@@ -100,6 +100,7 @@ def process_point(day, hour, minute):
             ['./fft_get_max_rssi.out', file_name]) if not channel_number else subprocess.check_output(
             ['./fft_get_max_rssi.out', file_name, channelnr_map[channel_number]])
     except:
+        print file_name
         return None
     for line in signalstr.splitlines():
         signals.append(int(line))
@@ -153,8 +154,9 @@ if __name__ == '__main__':
     if fix_endpoints:
         prev_day = sys.argv[6]
         next_day = sys.argv[7]
-
+    
     missings = []
+    """
     #TODO NONE POINT FIX FOR ENDPOINTS
     if fix_endpoints:
         for hour in range(20,24,1):
@@ -166,11 +168,13 @@ if __name__ == '__main__':
                     missings.append((hour-24, minute))
     counter = 0
     for day in days:
+        print day
         for (hour, minute) in itertools.product(range(start_hour,end_hour), range(first_minute, 60, 1)):
             max_point = process_point(day, hour, minute)
             if max_point:
                 maxes.append(max_point)
             else:
+                maxes.append(None)
                 missings.append((counter,hour,minute))
         counter += 1
 
@@ -184,33 +188,77 @@ if __name__ == '__main__':
                     maxes.append(max_point)
                 else:
                     missings.append((hour+24, minute))
-
+    """
+    yraw = []
+    with open('data.csv', 'r') as f:
+        line = f.readline()
+        while line:
+            yraw.append(float(line))
+            line = f.readline()
+        y = np.asarray(yraw)
     # Endpoints fix has 2 hours of additional data
     x = np.linspace(start_hour, len(days) * end_hour, len(days) * 60 * (end_hour - start_hour)) if not fix_endpoints else np.linspace(-4, 28, 1920)
-    for (day,hour,minute) in missings:
-        x = np.delete(x, day * 60 * 24 + hour * 60 + minute)
+    #for (day,hour,minute) in missings:
+        #x = np.delete(x, day * 60 * 24 + hour * 60 + minute)
+    """for i in range(len(maxes)):
+        if maxes[i] is not None:
+            continue
+        lower = i - 1
+        higher = i + 1
+        try:
+            while maxes[higher] is None:
+                higher += 1
+        except:
+            for j in range(len(maxes)-1, i-1,-1):
+                x = np.delete(x, j)
+                maxes = np.delete(maxes, j)
+            break
+        maxes[i] = maxes[lower] + (maxes[higher]-maxes[lower]) * ((higher-i) / (float(higher-lower)))
+
     y = np.asarray(maxes)
 
-    y_smooth = savitzky_golay(y, 101, 3)
-    y_smooth2 = savitzky_golay(y, 361, 3)
+    with open('data'+ '.csv', 'w') as f:
+        for val in y:
+            f.write(str(val) + '\n')
+    """
+
+    y_smooth = savitzky_golay(y, 101, 2)
+    #y_smooth2 = savitzky_golay(y, 361, 3)
+    y_smooths = []
+    for i in range(4):
+        y_smooths.append(savitzky_golay(y,101+((i+1)*250), 2))
     fig = plt.figure()
-    #raw = plt.plot(x, y, marker='o', color='blue', alpha=0.3)
-    #smooth1 = plt.plot(x, y_smooth, color='red')
-    smooth2 = plt.plot(x, y_smooth2, color='green')
+    raw, = plt.plot(x, y, marker='.', markersize=2, linestyle='None', color='blue', alpha=0.3, label='Highest signal strength (top %d removed)' % filter_num)
+    smooth1, = plt.plot(x, y_smooth, color='peru', linestyle='-', label="Savitzky-Golay filtered, order 3, window size 101", alpha=0.7)
+    #smooth2 = plt.plot(x, y_smooth2, color='green')
+    smooths = []
+    for i in range(len(y_smooths)):
+        if i == 3:
+            newsmooth, = plt.plot(x, y_smooths[i], linestyle='--', label='Savitzky-Golay filtered, order 3, window size 1101', color="maroon")
+            smooths.append(newsmooth)
     # Ticks at even hours
-    #plt.xticks(np.arange(0, 24 * len(days) + 1, 2))
+    plt.xticks(np.arange(0, 24 * len(days) + 1, 24), days, rotation=20)
     # Cut off endpoints fix; only show current day
-    plt.xlim([start_hour, len(days) * end_hour])
-    plt.xlabel('Time of day (hours)')
-    plt.ylabel('Smoothed received signal strength (dBm)')
+    plt.xlim([10 * 24, 14 * 24])
+    plt.xlabel('Day')
+    plt.ylabel('Received signal strength (dBm)')
     for i in range(len(days)):
-        plt.axvline(x=(i*24))
+        plt.axvline(x=(i*24), lw=1, color='grey')
     raw_label = mpatches.Patch(color='blue', label='Highest signal strength (top %d removed)' % filter_num)
     smooth1_label = mpatches.Patch(color='red', label='Savitzky-Golay filtered, order 3, window size 101')
     smooth2_label = mpatches.Patch(color='green', label='Savitzky-Golay filtered, order 3, window size 361')
     #Additional 15dBm on top for legend
     plt.ylim([plt.gca().get_ylim()[0],plt.gca().get_ylim()[1]+15])
 
-    plt.legend(handles=[raw_label, smooth1_label, smooth2_label])
+    handles = [raw, smooth1].extend(smooths)
+    plt.legend(handles=handles)
+    #plt.legend(handles=[raw_label, smooth1_label, smooth2_label])
+    #for i in range(len(y_smooths)):
+    #    with open('rssi' + str(i) + '.csv', 'w') as f:
+    #        for val in y_smooths[i]:
+    #            f.write(str(val) + '\n')
+    fig.savefig("image.pdf")
     plt.show()
-    #fig.savefig(directory + "../images/"  + day + "_" + str(channel_number))
+
+
+
