@@ -1,6 +1,7 @@
 import itertools
 import subprocess
 import sys
+import glob
 
 from freq_channelnr_map import map_ as channelnr_map
 
@@ -91,10 +92,10 @@ def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     return np.convolve(m[::-1], y, mode='valid')
 
 
-def process_point(day, hour, minute):
+def process_point(file_name):
     signals = []  # Fill with every nf+rssi of dump
-    file_name = directory + day + '_' + str(hour).zfill(2) + '-' + str(
-        minute).zfill(2)
+    #file_name = directory + day + '_' + str(hour).zfill(2) + '-' + str(
+    #    minute).zfill(2)
     try:
         signalstr = subprocess.check_output(
             ['./fft_get_max_rssi.out', file_name]) if not channel_number else subprocess.check_output(
@@ -169,14 +170,24 @@ if __name__ == '__main__':
     counter = 0
     for day in days:
         print day
-        for (hour, minute) in itertools.product(range(start_hour,end_hour), range(first_minute, 60, 1)):
-            max_point = process_point(day, hour, minute)
+        #for (hour, minute) in itertools.product(range(start_hour,end_hour), range(first_minute, 60, 1)):
+        #    max_point = process_point(day, hour, minute)
+        #    if max_point:
+        #        maxes.append(max_point)
+        #    else:
+        #        maxes.append(None)
+        #        missings.append((counter,hour,minute))
+        for filename in glob.iglob(directory + day + '_*'):    
+            max_point = process_point(filename)
             if max_point:
                 maxes.append(max_point)
             else:
                 maxes.append(None)
-                missings.append((counter,hour,minute))
-        counter += 1
+
+
+            counter += 1
+            if counter % 100 == 0:
+                print counter
 
 
     if fix_endpoints:
@@ -197,30 +208,35 @@ if __name__ == '__main__':
             line = f.readline()
         y = np.asarray(yraw)
     # Endpoints fix has 2 hours of additional data
-    x = np.linspace(start_hour, len(days) * end_hour, len(days) * 60 * (end_hour - start_hour)) if not fix_endpoints else np.linspace(-4, 28, 1920)
+    #x = np.linspace(start_hour, len(days) * end_hour, len(days) * 60 * (end_hour - start_hour)) if not fix_endpoints else np.linspace(-4, 28, 1920)
+
+
     #for (day,hour,minute) in missings:
         #x = np.delete(x, day * 60 * 24 + hour * 60 + minute)
     """for i in range(len(maxes)):
         if maxes[i] is not None:
             continue
+        print "ISNONE"
         lower = i - 1
         higher = i + 1
         try:
             while maxes[higher] is None:
                 higher += 1
         except:
+
             for j in range(len(maxes)-1, i-1,-1):
+
                 x = np.delete(x, j)
                 maxes = np.delete(maxes, j)
             break
         maxes[i] = maxes[lower] + (maxes[higher]-maxes[lower]) * ((higher-i) / (float(higher-lower)))
 
     y = np.asarray(maxes)
-
     with open('data'+ '.csv', 'w') as f:
         for val in y:
             f.write(str(val) + '\n')
     """
+    x = np.linspace(0, len(y),len(y))
 
     y_smooth = savitzky_golay(y, 101, 2)
     #y_smooth2 = savitzky_golay(y, 361, 3)
@@ -228,6 +244,7 @@ if __name__ == '__main__':
     for i in range(4):
         y_smooths.append(savitzky_golay(y,101+((i+1)*250), 2))
     fig = plt.figure()
+    print "rawsize", len(y)
     raw, = plt.plot(x, y, marker='.', markersize=2, linestyle='None', color='blue', alpha=0.3, label='Highest signal strength (top %d removed)' % filter_num)
     smooth1, = plt.plot(x, y_smooth, color='peru', linestyle='-', label="Savitzky-Golay filtered, order 3, window size 101", alpha=0.7)
     #smooth2 = plt.plot(x, y_smooth2, color='green')
@@ -239,7 +256,7 @@ if __name__ == '__main__':
     # Ticks at even hours
     plt.xticks(np.arange(0, 24 * len(days) + 1, 24), days, rotation=20)
     # Cut off endpoints fix; only show current day
-    plt.xlim([10 * 24, 14 * 24])
+    #plt.xlim([10 * 24, 14 * 24])
     plt.xlabel('Day')
     plt.ylabel('Received signal strength (dBm)')
     for i in range(len(days)):
@@ -257,7 +274,7 @@ if __name__ == '__main__':
     #    with open('rssi' + str(i) + '.csv', 'w') as f:
     #        for val in y_smooths[i]:
     #            f.write(str(val) + '\n')
-    fig.savefig("image.pdf")
+    #fig.savefig("image.pdf")
     plt.show()
 
 
