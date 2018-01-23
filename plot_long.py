@@ -277,5 +277,8 @@ if __name__ == '__main__':
     #fig.savefig("image.pdf")
     plt.show()
 
-
+    #fig.savefig(directory + "../images/"  + day + "_" + str(channel_number))
+    with open('smooth.out', 'w+') as f:
+        for line in y_smooth2:
+            f.write(str(line) + '\n')
 
