@@ -21,16 +21,16 @@ endif
 endif
 
 # test for presence of SDL
-ifeq ($(origin SDL_CFLAGS) $(origin SDL_LDLIBS), undefined undefined)
-  SDL_CONFIG = sdl-config
-  ifeq ($(shell which $(SDL_CONFIG) 2>/dev/null),)
-    $(error No SDL development libraries found!)
-  endif
-  SDL_CFLAGS  += $(shell $(SDL_CONFIG) --cflags)
-  SDL_LDLIBS += $(shell $(SDL_CONFIG) --libs)
-endif
-CFLAGS += $(SDL_CFLAGS)
-LDLIBS += $(SDL_LDLIBS)
+#ifeq ($(origin SDL_CFLAGS) $(origin SDL_LDLIBS), undefined undefined)
+#  SDL_CONFIG = sdl-config
+#  ifeq ($(shell which $(SDL_CONFIG) 2>/dev/null),)
+#    $(error No SDL development libraries found!)
+#  endif
+#  SDL_CFLAGS  += $(shell $(SDL_CONFIG) --cflags)
+#  SDL_LDLIBS += $(shell $(SDL_CONFIG) --libs)
+#endif
+#CFLAGS += $(SDL_CFLAGS)
+#LDLIBS += $(SDL_LDLIBS)
 
 ifeq ($(origin PKG_CONFIG), undefined)
   PKG_CONFIG = pkg-config
@@ -39,16 +39,16 @@ ifeq ($(origin PKG_CONFIG), undefined)
   endif
 endif
 
-ifeq ($(origin LIBSDLTTF_CFLAGS) $(origin LIBSDLTTF_LDLIBS), undefined undefined)
-  LIBSDLTTF_NAME ?= SDL_ttf
-  ifeq ($(shell $(PKG_CONFIG) --modversion $(LIBSDLTTF_NAME) 2>/dev/null),)
-    $(error No $(LIBSDLTTF_NAME) development libraries found!)
-  endif
-  LIBSDLTTF_CFLAGS += $(shell $(PKG_CONFIG) --cflags $(LIBSDLTTF_NAME))
-  LIBSDLTTF_LDLIBS +=  $(shell $(PKG_CONFIG) --libs $(LIBSDLTTF_NAME))
-endif
-CFLAGS += $(LIBSDLTTF_CFLAGS)
-LDLIBS += $(LIBSDLTTF_LDLIBS)
+#ifeq ($(origin LIBSDLTTF_CFLAGS) $(origin LIBSDLTTF_LDLIBS), undefined undefined)
+#  LIBSDLTTF_NAME ?= SDL_ttf
+#  ifeq ($(shell $(PKG_CONFIG) --modversion $(LIBSDLTTF_NAME) 2>/dev/null),)
+#    $(error No $(LIBSDLTTF_NAME) development libraries found!)
+#  endif
+#  LIBSDLTTF_CFLAGS += $(shell $(PKG_CONFIG) --cflags $(LIBSDLTTF_NAME))
+#  LIBSDLTTF_LDLIBS +=  $(shell $(PKG_CONFIG) --libs $(LIBSDLTTF_NAME))
+#endif
+#CFLAGS += $(LIBSDLTTF_CFLAGS)
+#LDLIBS += $(LIBSDLTTF_LDLIBS)
 
 CC ?= cc
 RM ?= rm -f

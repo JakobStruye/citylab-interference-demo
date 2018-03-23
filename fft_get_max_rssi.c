@@ -44,8 +44,8 @@
 #include <errno.h>
 #include <stdio.h>
 #include <math.h>
-#include <SDL.h>
-#include <SDL_ttf.h>
+//#include <SDL.h>
+//#include <SDL_ttf.h>
 #include <inttypes.h>
 #include <unistd.h>
 
@@ -180,8 +180,8 @@ struct scanresult {
 #define    AMASK    0xff000000
 
 
-static SDL_Surface *screen = NULL;
-static TTF_Font *font = NULL;
+//static SDL_Surface *screen = NULL;
+//static TTF_Font *font = NULL;
 static struct scanresult *result_list;
 static int scanresults_n = 0;
 static int color_invert = 0;

@@ -1,6 +1,6 @@
 import numpy as np
 
-with open('test2.out') as f:
+with open('freq_out/1/5220.out') as f:
     lines = f.readlines()
     lines = [int(l.split(' ')[1]) for l in lines]
     init = np.mean(lines[:100])
