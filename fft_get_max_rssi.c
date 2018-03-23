@@ -373,6 +373,16 @@ static void free_scandata(void) {
     result_list = NULL;
 }
 
+static int compare( const void* a, const void* b) {
+     int int_a = * ( (int*) a );
+     int int_b = * ( (int*) b );
+
+     if ( int_a == int_b ) return 0;
+     else if ( int_a < int_b ) return -1;
+     else return 1;
+}
+
+
 int main(int argc, char *argv[]) {
     int ch;
     char *ss_name = NULL;
@@ -380,8 +390,11 @@ int main(int argc, char *argv[]) {
     char *prog = NULL;
     struct scanresult *result;
     int max_signal = -200;
+    int avg_signal = 0;
     int counter = 0;
     int channel_freq = 0;
+    int val = 0;
+    double percentile = 0.95;
 
     if (argc >= 1)
         prog = argv[1];
@@ -421,29 +434,59 @@ int main(int argc, char *argv[]) {
     }
 
     if (read_scandata(ss_name) < 0) {
-        //fprintf(stderr, "Couldn't read scanfile ...\n");
+        fprintf(stderr, "Couldn't read scanfile ...\n");
         return -1;
     }
 
     for (result = result_list; result; result = result->next) {
-
+	
         if (argc < 2) {
             counter++;
-            printf("%d\n", result->sample.ath10k.header.noise + result->sample.ath10k.header.rssi);
-            if ((result->sample.ath10k.header.noise + result->sample.ath10k.header.rssi) > max_signal) {
-                max_signal = result->sample.ath10k.header.noise + result->sample.ath10k.header.rssi;
-            }
+            
         } else {
             if (result->sample.ath10k.header.freq1 == channel_freq) {
                 counter++;
-                printf("%d\n", result->sample.ath10k.header.noise + result->sample.ath10k.header.rssi);
-                if (result->sample.ath10k.header.noise + result->sample.ath10k.header.rssi > max_signal) {
-                    max_signal = result->sample.ath10k.header.noise + result->sample.ath10k.header.rssi;
+            }
+        }
+    }
+
+    int rssi_arr[counter];
+    counter = 0;
+
+    for (result = result_list; result; result = result->next) {
+	
+        if (argc < 2) {
+            val = result->sample.ath10k.header.noise + result->sample.ath10k.header.rssi;
+            rssi_arr[counter] = val;
+            counter++;
+            printf("%d\n", val);
+            if ((val) > max_signal) {
+                max_signal = val;
+            }
+        } else {
+            if (result->sample.ath10k.header.freq1 == channel_freq) {
+                val = result->sample.ath10k.header.noise + result->sample.ath10k.header.rssi;
+                //printf("%d\n", val);
+                rssi_arr[counter] = val;
+                counter++;
+                avg_signal += val;
+                
+                if (val > max_signal) {
+                    max_signal = val;
                 }
             }
         }
     }
-    printf("%d", counter);
+    qsort(rssi_arr, counter, sizeof(int), compare);
+    //for (int j = 0; j < counter; j++) {
+    //   printf("%d\n", rssi_arr[j]);
+    //}
+
+    printf("%d\n", rssi_arr[(int) round(counter * percentile) - 1]);
+    //avg_signal /= counter;
+    //printf("%d\n", avg_signal);
+    //printf("%d\n", counter);
+    //printf("%d\n", max_signal);
     free(fontdir);
     free_scandata();
 
