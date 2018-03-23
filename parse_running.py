@@ -23,13 +23,13 @@ for node in nodes:
     files = [f for f in listdir(dump_dir)]
     times = [datetime.datetime.strptime(ts, "%Y-%m-%d_%H-%M-%S.%f") for ts in files]
 
-    if len(times) < 1000:
+    if len(times) < 120:
         #wait a while
         break
 
     times.sort()
     times = [datetime.datetime.strftime(ts, "%Y-%m-%d_%H-%M-%S.%f")[:-3] for ts in times]
-    times = times[:1200]
+    #times = times[:1200]
     for freq in freqs:
         these_times = []
         raw_vals = []
