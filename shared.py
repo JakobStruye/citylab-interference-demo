@@ -36,6 +36,16 @@ channels = dict({
     140:"5700",
 })
 
-dump_dir_base = "./data/"
-raw_parse_dir_base = "./raw_parse/"
-smooth_dir_base = "./smoothed/"
+basedir = "/Users/jstr/mount/euterpe/citylab-interference-demo/"
+dump_dir_base = basedir + "data/"
+raw_parse_dir_base = basedir + "raw_parse/"
+smooth_dir_base = basedir + "smoothed/"
+predict_dir_base = basedir + "predicted/"
+
+weights_dir_base = "./weights/"
+
+coloring_strategy = 'relative' #'relative' or 'absolute'
+relative_thresh_red = '-70' #Everything above this is red
+relative_thresh_green = '-85' #Everything below this is green
+absolute_thresh_red = 0.3 #Top fraction colored red
+absolute_thresh_green = 0.3 #Bottom fraction colored green

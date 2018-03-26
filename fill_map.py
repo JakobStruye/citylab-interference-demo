@@ -1,5 +1,6 @@
 from shared import *
 import subprocess
+import operator
 
 def get_latest_smoothings(freq = None):
     smoothings = dict()
@@ -9,24 +10,50 @@ def get_latest_smoothings(freq = None):
             smoothings[node] = float(smoothing.split(",")[1])
     return smoothings
 
-def do_maps():
-    smoothings = get_latest_smoothings(2412)
+def get_colors(smoothings):
 
-    #copyfile("nodes_template.json", "nodes_temp.json")
+    sorted_smoothings = sorted(smoothings.items(), key=operator.itemgetter(1))
+    smoothing_count = float(len(sorted_smoothings))
+    colors = dict()
+    ctr = 0
+    for smoothing in sorted_smoothings:
+        ctr += 1
+        if coloring_strategy == 'relative':
+            if ctr / smoothing_count < absolute_thresh_green:
+                color = 'green'
+            elif ctr / smoothing_count > absolute_thresh_red:
+                color = 'red'
+            else:
+                color = 'yellow'
+        elif coloring_strategy == 'absolute':
+            if smoothing[1] < absolute_thresh_green:
+                color = 'green'
+            elif smoothing[1] > absolute_thresh_red:
+                color = 'red'
+            else:
+                color = 'yellow'
+        colors[smoothing[0]] = color
+
+def fill_in_colors(colors):
+
     with open("nodes_template.json", "r") as fin:
         lines = fin.readlines()
 
     changed_lines = []
+
     for line in lines:
-        for point in smoothings.iteritems():
-            color = '"green"' if point[1] < -80.0 else '"yellow"'
-            line = line.replace('"node' + point[0].zfill(2) + '"', color)
+        for point in colors.iteritems():
+            line = line.replace('"node' + point[0].zfill(2) + '"', point[1])
         changed_lines.append(line)
 
     with open("nodes.json", "w") as fout:
         for line in changed_lines:
             fout.write(line)
 
+def build_map():
+    smoothings = get_latest_smoothings(2412)
+    colors = get_colors(smoothings)
+    fill_in_colors(colors)
 
-
-do_maps()
+if __name__ =='__main__':
+    build_map()
