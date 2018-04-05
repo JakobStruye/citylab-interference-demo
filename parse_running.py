@@ -2,20 +2,21 @@ from os import listdir, stat, makedirs, remove
 from os.path import exists
 import datetime
 import subprocess
-import numpy as np
+#import numpy as np
 from shared import *
+from platform import uname
 
-
-freqs = channels.values()
+#freqs = channels.values()
 
 freqs.sort()
 freqs = freqs[:1]
 
+nodes = [uname()[1].split(".")[0][4:]]
 for node in nodes:
     raw_parse = raw_parse_dir_base + node + "/"
     if not exists(raw_parse):
         makedirs(raw_parse)
-    dump_dir = dump_dir_base + node + "/output/"
+    dump_dir = dump_dir_base# + node + "/output/"
     smooth_dir = smooth_dir_base + node + "/output/"
     if not exists(smooth_dir):
         makedirs(smooth_dir)
@@ -23,9 +24,9 @@ for node in nodes:
     files = [f for f in listdir(dump_dir)]
     times = [datetime.datetime.strptime(ts, "%Y-%m-%d_%H-%M-%S.%f") for ts in files]
 
-    if len(times) < 120:
-        #wait a while
-        break
+    #if len(times) < 120:
+    #    #wait a while
+    #    break
 
     times.sort()
     times = [datetime.datetime.strftime(ts, "%Y-%m-%d_%H-%M-%S.%f")[:-3] for ts in times]
@@ -47,7 +48,8 @@ for node in nodes:
         if exists(smooth_file):
             smooth_val = float(subprocess.check_output(['tail', '-1', smooth_file]).split(",")[1])
         else:
-            smooth_val = np.mean(raw_vals[:100])
+            #smooth_val = sum(raw_vals[:100]) / 100.0#np.mean(raw_vals[:100])
+            smooth_val = -80.0
         with open(smooth_file, 'a+') as smooth_f:
 
             smooth_vals = []

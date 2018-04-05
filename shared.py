@@ -36,8 +36,12 @@ channels = dict({
     140:"5700",
 })
 
-basedir = "/Users/jstr/mount/euterpe/citylab-interference-demo/"
-dump_dir_base = basedir + "data/"
+freqs = []
+with open('freqs') as f:
+    freqs = f.read().split('\n')[:-1]
+
+basedir = "/users/jstruye/"
+dump_dir_base = basedir + "output/"
 raw_parse_dir_base = basedir + "raw_parse/"
 smooth_dir_base = basedir + "smoothed/"
 predict_dir_base = basedir + "predicted/"
