@@ -47,7 +47,7 @@ while True:
                         these_times.append(time)
 
             smooth_file = smooth_dir + freq + ".out"
-            if exists(smooth_file):
+            if exists(smooth_file) and stat(smooth_file).st_size > 0:
                 smooth_val = float(subprocess.check_output(['tail', '-1', smooth_file]).split(",")[1])
             else:
                 #smooth_val = sum(raw_vals[:100]) / 100.0#np.mean(raw_vals[:100])
