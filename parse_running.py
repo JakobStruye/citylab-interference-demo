@@ -11,7 +11,7 @@ from time import sleep
 while True:
     sleep(1)
     freqs.sort()
-    freqs = freqs[:1]
+    #freqs = freqs[:1]
 
     nodes = [uname()[1].split(".")[0][4:]]
     for node in nodes:
