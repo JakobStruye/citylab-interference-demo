@@ -10,6 +10,7 @@ freqs = channels.values()
 
 freqs.sort()
 freqs = freqs[:1]
+freqs = ["2412", "5220"]
 
 for node in nodes:
     raw_parse = raw_parse_dir_base + node + "/"
@@ -23,9 +24,9 @@ for node in nodes:
     files = [f for f in listdir(dump_dir)]
     times = [datetime.datetime.strptime(ts, "%Y-%m-%d_%H-%M-%S.%f") for ts in files]
 
-    if len(times) < 120:
-        #wait a while
-        break
+    #if len(times) < 120:
+    #    #wait a while
+    #    break
 
     times.sort()
     times = [datetime.datetime.strftime(ts, "%Y-%m-%d_%H-%M-%S.%f")[:-3] for ts in times]
@@ -47,7 +48,7 @@ for node in nodes:
         if exists(smooth_file):
             smooth_val = float(subprocess.check_output(['tail', '-1', smooth_file]).split(",")[1])
         else:
-            smooth_val = np.mean(raw_vals[:100])
+            smooth_val = np.mean(raw_vals[:min(100,len(raw_vals))])
         with open(smooth_file, 'a+') as smooth_f:
 
             smooth_vals = []

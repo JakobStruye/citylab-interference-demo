@@ -1,8 +1,10 @@
 
 
-nodes = ["1"]#, "14", "16", "18", "21", "23", "25", "28", "33", "35", "4", "7", "9"]
-
-
+nodes = ["1", "28"]#, "14", "16", "18", "21", "23", "25", "28", "33", "35", "4", "7", "9"]
+with open("nodes") as f:
+    lines = f.read().split("\n")
+    nodes = [str(line) for line in lines]
+    nodes = nodes[:-1]
 channels = dict({
     1:"2412",
     #2:"2417",
@@ -36,16 +38,38 @@ channels = dict({
     140:"5700",
 })
 
-basedir = "/Users/jstr/mount/euterpe/citylab-interference-demo/"
-dump_dir_base = basedir + "data/"
+basedir = "./"
+dump_dir_base = basedir + "cnert/"
 raw_parse_dir_base = basedir + "raw_parse/"
 smooth_dir_base = basedir + "smoothed/"
 predict_dir_base = basedir + "predicted/"
 
 weights_dir_base = "./weights/"
 
-coloring_strategy = 'relative' #'relative' or 'absolute'
-relative_thresh_red = '-70' #Everything above this is red
-relative_thresh_green = '-85' #Everything below this is green
-absolute_thresh_red = 0.3 #Top fraction colored red
-absolute_thresh_green = 0.3 #Bottom fraction colored green
+coloring_strategy = 'absolute' #'relative' or 'absolute'
+absolute_thresh_red = -50. #Everything above this is red
+absolute_thresh_green = -85 #Everything below this is green
+relative_thresh_red = 0.9 #Red above this fraction
+relative_thresh_green = 0.3 #Green below this fraction
+
+lb = 300
+pred_step = 100
+input_shape = (1, lb)
+units = 100
+epochs = 20
+epochs_init = 40
+train_size = 11000
+
+
+def normalize(arr):
+    minval = -100
+    maxval = -20
+    range = maxval - minval
+    return (arr - minval) * 2 / (range) - 1
+
+def denormalize(arr):
+    minval = -100
+    maxval = -20
+    range = maxval - minval
+
+    return (arr + 1) * range / 2 + minval
