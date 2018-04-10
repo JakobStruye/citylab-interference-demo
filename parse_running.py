@@ -9,9 +9,9 @@ from time import sleep
 
 #freqs = channels.values()
 while True:
-    sleep(1)
+    #sleep(1)
     freqs.sort()
-    freqs = freqs[:1]
+    #freqs = freqs[:1]
 
     nodes = [uname()[1].split(".")[0][4:]]
     for node in nodes:
@@ -34,30 +34,35 @@ while True:
         times = [datetime.datetime.strftime(ts, "%Y-%m-%d_%H-%M-%S.%f")[:-3] for ts in times]
         #times = times[:1200]
         for freq in freqs:
+            print freq
             these_times = []
             raw_vals = []
             with open(raw_parse + freq + ".out", 'a') as f:
                 for time in times:
                     if (stat(dump_dir + time).st_size > 400000) == (int(freq) > 4000):
                         signalstr = subprocess.check_output(
-                            ['./fft_get_max_rssi.out', dump_dir + time, freq])
+                            [basedir + 'citylab-interference-demo/fft_get_max_rssi.out', dump_dir + time, freq])
                         val = int(signalstr)
                         f.write(time + "," + str(val) +  "\n")
                         raw_vals.append(val)
                         these_times.append(time)
 
             smooth_file = smooth_dir + freq + ".out"
-            if exists(smooth_file):
-                smooth_val = float(subprocess.check_output(['tail', '-1', smooth_file]).split(",")[1])
+            if exists(smooth_file) and stat(smooth_file).st_size > 0:
+                try:
+                    smooth_val = float(subprocess.check_output(['tail', '-1', smooth_file]).split(",")[1])
+                except:
+                    smooth_val = float(subprocess.check_output(['tail', '-2', smooth_file]).split("\n")[0].split(",")[1].strip())
+
             else:
                 #smooth_val = sum(raw_vals[:100]) / 100.0#np.mean(raw_vals[:100])
                 smooth_val = -80.0
             with open(smooth_file, 'a+') as smooth_f:
-
                 smooth_vals = []
                 prev_val = smooth_val
                 for i in range(len(raw_vals)):
-                    val = prev_val * 0.96 + raw_vals[i] * 0.04
+                    #print "writing"
+                    val = prev_val * 0.90 + raw_vals[i] * 0.1
                     smooth_vals.append(val)
                     smooth_f.write(these_times[i] + "," + str(val) + "\n")
                     prev_val = val

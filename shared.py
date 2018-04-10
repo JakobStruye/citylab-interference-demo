@@ -37,10 +37,10 @@ channels = dict({
 })
 
 freqs = []
-with open('freqs') as f:
+basedir = "/home/citylab-user/"
+with open(basedir + 'citylab-interference-demo/freqs') as f:
     freqs = f.read().split('\n')[:-1]
 
-basedir = "/users/jstruye/"
 dump_dir_base = basedir + "output/"
 raw_parse_dir_base = basedir + "raw_parse/"
 smooth_dir_base = basedir + "smoothed/"
