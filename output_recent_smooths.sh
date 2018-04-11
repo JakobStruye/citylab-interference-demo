@@ -11,4 +11,4 @@ lineto=$(wc -l < ${freq}.out ) &&
 #echo $linefrom
 #echo $lineto
 echo ${lineto} > ${freq}.out.line
-awk "NR >= ${linefrom} && NR < ${lineto}" ${freq}.out &&
+awk "NR >= ${linefrom} && NR < ${lineto}" ${freq}.out
