@@ -44,6 +44,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import time;
+import datetime;
 
 /**
  * This UI is the application entry point. A UI may either represent a browser window 
@@ -267,6 +269,7 @@ public class MyUI extends UI {
         List<Double> data = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(Paths.get(directory.toString(), "../predicted/" + node + "/" + freq + ".out").toString()))) {
             String line;
+
             while ((line = br.readLine()) != null) {
                 String[] splits = line.split(",");
                 if (splits.length < 2) {
@@ -291,6 +294,7 @@ public class MyUI extends UI {
         // generate data
         String mostRecentDate = null;
         List<Double> data3 = new ArrayList<>();
+        List<Double> timestamps = new ArrayList<>();
         try (BufferedReader br = new BufferedReader(new FileReader(Paths.get(directory.toString(), "../smoothed/" + node + "/" + freq + ".out").toString()))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -299,6 +303,8 @@ public class MyUI extends UI {
                     break;
                 }
                 data3.add(new Double(splits[1]));
+                double date = time.mktime(datetime.datetime.strptime(s, "%d/%m/%Y").timetuple());
+                timestamps.append(date);
                 mostRecentDate = splits[0];
             }
         } catch (FileNotFoundException e) {
@@ -311,19 +317,39 @@ public class MyUI extends UI {
         }
 
         List<String> zeroLabels = new ArrayList<>();
-        for (int i = 0; i < data3.size(); i++) {
-            zeroLabels.add(new Integer(i).toString());
+        for (date : timestamps) {
+            zeroLabels.add(new Double(date).toString());
         }
 
         String windowMin;
         String windowMax;
         switch(this.windowRange) {
             case LONGRANGE:
-                windowMin = zeroLabels.get(Math.max(0, zeroLabels.size() - 60*60*24 / MEASURE_INTERVAL));
+                //24h
+                double startPoint = timestamps.get(timestamps.size() - 1) - (24*60*60);
+                int skips = 0;
+                for (date : timestamps) {
+                    if (date < startPoint) {
+                        skips++;
+                    } else {
+                        break;
+                    }
+                }
+                windowMin = zeroLabels.get(skips);
                 windowMax = zeroLabels.get(zeroLabels.size() - 1);
                 break;
             case SHORTRANGE:
-                windowMin = zeroLabels.get(Math.max(0, zeroLabels.size() - 60*30 / MEASURE_INTERVAL));
+                //30min
+                double startPoint = timestamps.get(timestamps.size() - 1) - (30*60);
+                int skips = 0;
+                for (date : timestamps) {
+                    if (date < startPoint) {
+                        skips++;
+                    } else {
+                        break;
+                    }
+                }
+                windowMin = zeroLabels.get(skips);
                 windowMax = zeroLabels.get(zeroLabels.size() - 1);
                 break;
             default:
