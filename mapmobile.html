@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Data Layer: Dynamic Styling</title>
+    <meta name="viewport" content="initial-scale=1.0">
+    <meta charset="utf-8">
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+  </head>
+  <body>
+    <div id="map"></div>
+    <script>
+      var labels = ["1", 
+                    "2", 
+                    "3", 
+                    "4", 
+                    "5", 
+                    "7", 
+                    "8", 
+                    "9", 
+                    "12", 
+                    "14", 
+                    "15", 
+                    "16", 
+                    "17", 
+                    "18", 
+                    "19", 
+                    "20", 
+                    "21", 
+                    "22", 
+                    "23", 
+                    "24", 
+                    "26", 
+                    "27", 
+                    "28", 
+                    "33", 
+                    "34", 
+                    "35", 
+                    "36", 
+                    "6", 
+                    "71", 
+                    "72", 
+                    "73", 
+                    "74", 
+                    "11", 
+                    "10",
+                    "13"];
+      var labelIndex = 0;
+      var map;
+      var olds = []
+      var colorMap = new Map();
+21.282850, -157.836143
+      var markers = [{lng: -157.836143, lat: 21.282850},
+//{lng: 4.410840000000001, lat: 51.2218305916},
+//{lng: 4.409477999999999, lat: 51.2199485916},
+//{lng: 4.409815, lat: 51.2204715916},
+//{lng: 4.410003, lat: 51.2208395916},
+//{lng: 4.411274000000001, lat: 51.2224615916},
+//{lng: 4.4113180000000005, lat: 51.2226255916},
+//{lng: 4.410716, lat: 51.2227095916},
+//{lng: 4.411513, lat: 51.2232655916},
+//{lng: 4.411270000000001, lat: 51.2236065916},
+//{lng: 4.411138000000001, lat: 51.2235415916},
+//{lng: 4.41149, lat: 51.2233995916},
+//{lng: 4.411042, lat: 51.2239435916},
+//{lng: 4.4111769999999995, lat: 51.2239155916},
+//{lng: 4.411217, lat: 51.2240075916},
+//{lng: 4.411827, lat: 51.2241545916},
+//{lng: 4.41257, lat: 51.2239175916},
+//{lng: 4.412696, lat: 51.2237245916},
+//{lng: 4.413168, lat: 51.2237055916},
+//{lng: 4.4128609999999995, lat: 51.2233475916},
+//{lng: 4.413572, lat: 51.2236465916},
+//{lng: 4.412419, lat: 51.2236195916},
+//{lng: 4.412349, lat: 51.2234865916},
+//{lng: 4.409707, lat: 51.2226665916},
+//{lng: 4.409954, lat: 51.2231225916},
+//{lng: 4.410818, lat: 51.2229495916},
+//{lng: 4.410559, lat: 51.2224735916},
+//{lng: 4.420749, lat: 51.1844615916},
+//{lng: 4.42074, lat: 51.1844395916},
+//{lng: 4.42072, lat: 51.1844185916},
+//{lng: 4.420752000000001, lat: 51.1844065916},
+//{lng: 4.4207860000000005, lat: 51.1843915916},
+//{lng: 4.410311, lat: 51.2232605916},
+//{lng: 4.410452, lat: 51.2232325916},
+//{lng: 4.410467999999999, lat: 51.2235315916}
+]
+
+      function initMap() {
+        //delete map;
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 16,
+          center: {lat: 21.282850, lng: -157.836143}
+        });
+
+        // new google.maps.KmlLayer({
+        //   url: "https://www.dropbox.com/s/dgr0g1xhzjbofpx/gateways.kmz?dl=1",
+        //
+        //   map: map,
+        //   preserveViewport: true
+        // })
+        // new google.maps.KmlLayer({
+        //   url: "https://www.dropbox.com/s/mpc7hahdsdnz0mn/gateways_future.kmz?dl=1",
+        //
+        //   map: map,
+        //   preserveViewport: true
+        // })
+        // new google.maps.KmlLayer({
+        //   url: "https://www.dropbox.com/s/x5j6m3rvr3jgzx3/gateways_gen1.kmz?dl=1",
+        //
+        //   map: map,
+        //   preserveViewport: true
+        // })
+        // new google.maps.KmlLayer({
+        //   url: "https://www.dropbox.com/s/0ato3mepj3z0ncj/Untitled%20map.kmz?dl=1",
+        //
+        //   map: map,
+        //   preserveViewport: true
+        // })
+
+
+
+        //alert(layer);
+        map.data.addListener('mouseover', function(event) {
+          map.data.revertStyle();
+          map.data.overrideStyle(event.feature, {strokeWeight: 8});
+        });
+
+        map.data.addListener('mouseout', function(event) {
+          map.data.revertStyle();
+        });
+        map.data.addListener('click', function(event) {
+          event.feature.setProperty('isColorful', true);
+        });
+        nodes = map.data.loadGeoJson(
+            //'https://storage.googleapis.com/mapsdevsite/json/google.json');
+            'nodes_mobile_template.json?nonce=' + Math.random().toString(36).substring(7));
+        map.data.setStyle(function(feature) {
+          //var color = 'gray';
+          //var strokeWeight = 8;
+          //if (feature.getProperty('isColorful')) {
+          //color = feature.getProperty('color');
+          feature.setProperty("thecolor", feature.getProperty("color"));
+          color = feature.getProperty("thecolor")
+          strokeWeight = feature.getProperty('strokeWeight');
+          //console.log(color);
+          //if (Math.random() > 0.5) { color = "red" } else {color = "blue"}
+          //console.log("CLR", color);
+          //if (color in colorMap) {
+              //color = colorMap.get(color);
+              //console.log("IS IN");
+          //}
+          //console.log(colorMap.get("node36"))
+          //color = "yellow"
+          //}
+          return /** @type {google.maps.Data.StyleOptions} */({
+            fillColor: color,
+            visible: false,//!color.includes("node") && !color.includes("NODE"),
+            strokeColor: color,
+            strokeWeight: strokeWeight
+          });
+        });
+        updateMap();
+
+        //egrep "\[\[\[.*?\]" nodes.json  | cut -d ']' -f1 | tr -d ' ['
+        
+        //for (var i=0; i < markers.length; i++) {
+        //    addMarker(markers[i], map);
+        //}
+      }
+      function updateMap() {
+        //olds = [];
+        //if (olds.length !== 0) {
+        //    setTimeout(updateMap, 5000);
+        //    return;
+        //}
+        //google.maps.event.addListener(map, 'idle', function() {
+        //    console.log("CBACK");
+        //    for (var i = 0; i < olds.length; i++) {
+        //        map.data.remove(olds[i]);
+        //    }
+        //    olds = [];
+        //});
+        //Twice as first fetch after change fails somehow
+        //nodes = map.data.loadGeoJson(
+        //    //'https://storage.googleapis.com/mapsdevsite/json/google.json');
+        //    'nodes.json?nonce=' + Math.random().toString(36).substring(7));
+
+        // Color each letter gray. Change the color when the isColorful property
+        // is set to true.
+        $.get("nodes_mobile_colors.txt?nonce=" + Math.random().toString(36).substring(7), function(data) {
+            //console.log("Here's the file data: "+data);
+            data = data.split("\n");
+
+            for (var i = 0; i < data.length - 1; i++) {
+                colorMap.set(data[i].split(",")[0], data[i].split(",")[1]);
+                //console.log(data[i].split(",")[0], data[i].split(",")[1]);
+            }
+        });
+
+        map.data.forEach(function(feature) {
+            // filter...
+            feature.setProperty("thecolor", colorMap.get(feature.getProperty("color")))
+            color = colorMap.get(feature.getProperty("color"))
+            var vis;
+            if (color.includes("NODE")) {
+               vis = false
+            } else {
+               vis = true
+            }
+            map.data.overrideStyle(feature, {visible: vis});
+            map.data.overrideStyle(feature, {fillColor: color, strokeColor: color});
+            //map.data.overrideStyle(feature, {visible: true});
+            //console.log("NEW", colorMap.get(feature.getProperty("color")))
+        });
+
+        // When the user clicks, set 'isColorful', changing the color of the letters.
+
+        // When the user hovers, tempt them to click by outlining the letters.
+        // Call revertStyle() to remove all overrides. This will use the style rules
+        // defined in the function passed to setStyle()
+
+        setTimeout( updateMap, 1000 )
+
+        console.log("Updated!");
+
+      }
+
+      function addMarker(location, map) {
+        // Add the marker at the clicked location, and add the next-available label
+        // from the array of alphabetical characters.
+        var marker = new google.maps.Marker({
+          position: location,
+          label: labels[labelIndex++ % labels.length],
+          map: map,
+          opacity: 0.7,
+          color: "blue",
+//          icon: "bluemarker.png"
+        });
+        console.log(marker);
+      }
+
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDndf9L1iyomd9cY7WBSxJr1tFC_eOAFJY&callback=initMap">
+    </script>
+  </body>
+</html>

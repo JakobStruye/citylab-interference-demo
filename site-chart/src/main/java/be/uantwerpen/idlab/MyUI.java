@@ -14,6 +14,7 @@ import com.vaadin.annotations.VaadinServletConfiguration;
 import com.vaadin.data.HasValue;
 import com.vaadin.event.selection.SingleSelectionListener;
 import com.vaadin.server.VaadinRequest;
+import com.vaadin.server.Page;
 import com.vaadin.server.VaadinServlet;
 import com.vaadin.ui.*;
 import com.vaadin.ui.themes.ValoTheme;
@@ -54,7 +55,7 @@ import java.util.List;
 @Theme("mytheme")
 public class MyUI extends UI {
 
-    private static final Path directory = Paths.get("/Users/jstr/mount/euterpe/citylab-interference-demo/");
+    private static final Path directory = Paths.get("/home/jstruye/citylab-interference-demo");
     private static final  String LONGRANGE = "24 hours";
     private static final String SHORTRANGE = "30 minutes";
 
@@ -68,11 +69,17 @@ public class MyUI extends UI {
     private String windowRange = null;
 
     private Component chartComponent = null;
+    private Label mostRecent = null;
 
 
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
+        boolean isMobile = false;
+        String frag = Page.getCurrent().getUriFragment();
+        if (frag != null && frag.equals("mobile")) {
+            isMobile = true;
+        }
         final VerticalLayout layout = new VerticalLayout();
 
 
@@ -87,12 +94,22 @@ public class MyUI extends UI {
 
         final ComboBox nodeBox = new ComboBox();
         List<String> nodes = new ArrayList<>();
-        try {
-            Files.readAllLines(Paths.get(directory.toString(), "nodes")).forEach(line-> {nodes.add(line);});
-        } catch (IOException e) {
-            e.printStackTrace();
+        if (!isMobile) {
+            try {
+                Files.readAllLines(Paths.get(directory.toString(), "nodes")).forEach(line-> {nodes.add(line);});
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            nodes.add("67");
         }
         nodeBox.setItems(nodes);
+        if (isMobile) {
+            node = "67";
+        }
+        nodeBox.setVisible(!isMobile);
+
         nodeBox.addValueChangeListener((HasValue.ValueChangeListener) valueChangeEvent -> {
             Object value = valueChangeEvent.getValue();
             if (value != null) {
@@ -230,6 +247,10 @@ public class MyUI extends UI {
         this.chartComponent.setSizeFull();
         layout.addComponent(this.chartComponent);
         layout.setExpandRatio(this.chartComponent, 1.0f);
+
+	mostRecent = new Label();
+        layout.addComponent(mostRecent);
+        layout.setComponentAlignment(mostRecent, Alignment.BOTTOM_RIGHT);
         layout.setSizeFull();
         layout.setHeight("800px");
         this.setSizeFull();
@@ -244,7 +265,7 @@ public class MyUI extends UI {
 
         // generate data
         List<Double> data = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(Paths.get(directory.toString(), "predicted/" + node + "/" + freq + ".out").toString()))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(Paths.get(directory.toString(), "../predicted/" + node + "/" + freq + ".out").toString()))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] splits = line.split(",");
@@ -268,8 +289,9 @@ public class MyUI extends UI {
         }
 
         // generate data
+        String mostRecentDate = null;
         List<Double> data3 = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(Paths.get(directory.toString(), "smoothed/" + node + "/output/" + freq + ".out").toString()))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(Paths.get(directory.toString(), "../smoothed/" + node + "/" + freq + ".out").toString()))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] splits = line.split(",");
@@ -277,16 +299,19 @@ public class MyUI extends UI {
                     break;
                 }
                 data3.add(new Double(splits[1]));
+                mostRecentDate = splits[0];
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
+        if (mostRecentDate != null) {
+            mostRecent.setValue("Most recent date: " + mostRecentDate.toString());
+        }
 
         List<String> zeroLabels = new ArrayList<>();
-        for (int i = 0; i < data.size(); i++) {
+        for (int i = 0; i < data3.size(); i++) {
             zeroLabels.add(new Integer(i).toString());
         }
 

@@ -38,7 +38,7 @@ channels = dict({
     140:"5700",
 })
 
-basedir = "./"
+basedir = "../"
 dump_dir_base = basedir + "cnert/"
 raw_parse_dir_base = basedir + "raw_parse/"
 smooth_dir_base = basedir + "smoothed/"
@@ -46,9 +46,9 @@ predict_dir_base = basedir + "predicted/"
 
 weights_dir_base = "./weights/"
 
-coloring_strategy = 'absolute' #'relative' or 'absolute'
-absolute_thresh_red = -50. #Everything above this is red
-absolute_thresh_green = -85 #Everything below this is green
+coloring_strategy = 'relative' #'relative' or 'absolute'
+absolute_thresh_red = -20. #Everything above this is red
+absolute_thresh_green = -42 #Everything below this is green
 relative_thresh_red = 0.9 #Red above this fraction
 relative_thresh_green = 0.3 #Green below this fraction
 

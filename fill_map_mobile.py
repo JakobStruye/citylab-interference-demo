@@ -7,7 +7,7 @@ from time import sleep
 def get_latest_smoothings(freq = None):
     smoothings = dict()
     print(nodes)
-    for node in nodes:
+    for node in ["67"]:
         if freq:
             try:
                 smoothing = subprocess.check_output(['tail', '-1', smooth_dir_base+node+ "/"+ str(freq) + ".out"]).decode('utf-8')
@@ -23,14 +23,15 @@ def get_colors(smoothings):
     colors = dict()
     ctr = 0
     for smoothing in sorted_smoothings:
-        if coloring_strategy == 'relative':
-            if ctr / smoothing_divisor < relative_thresh_green:
-                color = 'blue'
-            elif ctr / smoothing_divisor > relative_thresh_red:
-                color = 'red'
-            else:
-                color = 'yellow'
-        elif coloring_strategy == 'absolute':
+        #if coloring_strategy == 'relative':
+        #    if ctr / smoothing_divisor < relative_thresh_green:
+        #        color = 'green'
+        #    elif ctr / smoothing_divisor > relative_thresh_red:
+        #        color = 'red'
+        #    else:
+        #        color = 'yellow'
+        print smoothing[1]
+        if True:
             if smoothing[1] < absolute_thresh_green:
                 color = 'blue'
             elif smoothing[1] > absolute_thresh_red:
@@ -47,7 +48,7 @@ def get_colors(smoothings):
 
 def fill_in_colors(colors):
 
-    with open("nodes_colors_template.txt", "r") as fin:
+    with open("nodes_mobile_colors_template.txt", "r") as fin:
         lines = fin.readlines()
 
     changed_lines = []
@@ -57,12 +58,12 @@ def fill_in_colors(colors):
             line = line.replace('NODE' + point[0].zfill(2), str(point[1]))
         changed_lines.append(line)
 
-    with open("nodes_colors.txt", "w") as fout:
+    with open("nodes_mobile_colors.txt", "w") as fout:
         for line in changed_lines:
             fout.write(line)
 
 def build_map():
-    smoothings = get_latest_smoothings(2412)
+    smoothings = get_latest_smoothings(2437)
     colors = get_colors(smoothings)
     fill_in_colors(colors)
 
