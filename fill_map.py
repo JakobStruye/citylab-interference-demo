@@ -3,17 +3,26 @@ import subprocess
 import operator
 import random
 from time import sleep
+import traceback
+import datetime
 
 def get_latest_smoothings(freq = None):
     smoothings = dict()
     print(nodes)
+    latest_date = datetime.datetime.strptime("2016-01-01", "%Y-%m-%d")
     for node in nodes:
         if freq:
             try:
                 smoothing = subprocess.check_output(['tail', '-1', smooth_dir_base+node+ "/"+ str(freq) + ".out"]).decode('utf-8')
                 smoothings[node] = float(smoothing.split(",")[1])
+                thisdate = datetime.datetime.strptime(smoothing.split(",")[0], "%Y-%m-%d_%H-%M-%S.%f")
+                if thisdate > latest_date:
+                    latest_date = thisdate
             except:
+                traceback.print_exc()
                 print("Couldn't fetch for node", node)
+    with open("latest_date", "w") as f:
+        f.write(latest_date.strftime("%Y-%m-%d %H:%M:%S"))
     return smoothings
 
 def get_colors(smoothings):

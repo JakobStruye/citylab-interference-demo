@@ -34,8 +34,12 @@ def train_model(node, freq):
 
     recent_smooth_lines = subprocess.check_output(['tail', '-n' + str(train_size + pred_step), smooth_dir_base + node + "/" + str(freq) + ".out"])
     recent_smooth_lines = recent_smooth_lines.decode("utf-8")
-
-    recent_smooths = [float(val.split(",")[1]) for val in recent_smooth_lines.split("\n")[:-1]]
+    recent_smooths = []
+    for val in recent_smooth_lines.split("\n")[:-1]:
+        splits = val.split(",")
+        if len(splits) == 2:
+            recent_smooths.append(float(splits[1]))
+    #recent_smooths = [float(val.split(",")[1]) for val in recent_smooth_lines.split("\n")[:-1]]
     input_data = []
     output_data = []
     print(train_size, pred_step, lb)
@@ -62,7 +66,7 @@ def train_model(node, freq):
             rnn.save_weights(weights_file)
 
 if __name__ == '__main__':
-    for node in nodes:
+    for node in [67]:
         for freq in freqs:
             train_model(str(node), str(freq))
 

@@ -3,6 +3,7 @@ import subprocess
 import operator
 import random
 from time import sleep
+import datetime
 
 def get_latest_smoothings(freq = None):
     smoothings = dict()
@@ -12,8 +13,11 @@ def get_latest_smoothings(freq = None):
             try:
                 smoothing = subprocess.check_output(['tail', '-1', smooth_dir_base+node+ "/"+ str(freq) + ".out"]).decode('utf-8')
                 smoothings[node] = float(smoothing.split(",")[1])
+                thisdate = datetime.datetime.strptime(smoothing.split(",")[0], "%Y-%m-%d_%H-%M-%S.%f")
             except:
                 print("Couldn't fetch for node", node)
+    with open("latest_date_mobile", "w") as f:
+        f.write(thisdate.strftime("%Y-%m-%d %H:%M:%S"))
     return smoothings
 
 def get_colors(smoothings):
@@ -69,5 +73,8 @@ def build_map():
 
 if __name__ =='__main__':
     while True:
-        build_map()
+        try:
+            build_map()
+        except:
+            pass
         sleep(3)

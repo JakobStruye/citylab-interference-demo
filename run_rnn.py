@@ -9,6 +9,9 @@ import flock
 from os.path import exists
 from os import makedirs
 import subprocess
+import threading
+import time
+import sys
 
 def run_model(node, freq):
 
@@ -46,17 +49,27 @@ def run_model(node, freq):
 
     if predict_latest_time:
         start_line = subprocess.check_output(
-            ['grep', '-n', predict_latest_time, smooth_file])
-        start_line = int(start_line.split(" ")[0]) - lb + 1
+            ['grep', '-n', predict_latest_time, smooth_file]).decode('utf-8')
+        start_line = int(start_line.split(":")[0]) - lb + 1
     else:
         start_line = 0
 
 
 
-    smooth_lines = subprocess.check_output(['tail', '-n', '+' + str(start_line), smooth_dir_base + node + "/output/" + str(freq) + ".out"])
+    smooth_lines = subprocess.check_output(['tail', '-n', '+' + str(start_line), smooth_dir_base + node + "/" + str(freq) + ".out"])
     smooth_lines = smooth_lines.decode("utf-8")
     smooth_lines = smooth_lines.split("\n")
-    input_smooth_lines = [float(val.split(",")[1]) for val in smooth_lines[:-1]]
+    input_smooth_lines = []
+    for line in smooth_lines[:-1]:
+        splits = line.split(",")
+        if len(splits) == 2:
+            try:
+                input_smooth_lines.append(float(splits[1]))
+            except:
+                pass
+
+
+    #input_smooth_lines = [float(val.split(",")[1]) for val in smooth_lines[:-1]]
     print(len(input_smooth_lines))
     timestamps = [val.split(",")[0] for val in smooth_lines[lb - 1:-1]]
 
@@ -78,7 +91,7 @@ def run_model(node, freq):
     results = np.reshape(results, (-1))
     print(results.shape[0])
     print(len(timestamps))
-    assert results.shape[0] == len(timestamps)
+    #assert results.shape[0] == len(timestamps)
     with open(predict_file, 'a+') as f:
 
         for i in range(results.shape[0]):
@@ -92,6 +105,6 @@ def run_model(node, freq):
     #         rnn.save_weights(weights_file)
 
 if __name__ == '__main__':
-    run_model("1", "5220")
-
-
+    node = sys.argv[1]
+    freq = sys.argv[2]
+    run_model(node, freq)

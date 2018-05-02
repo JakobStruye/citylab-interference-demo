@@ -8,7 +8,7 @@
       /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
       #map {
-        height: 100%;
+        height: 95%;
       }
       /* Optional: Makes the sample page fill the window. */
       html, body {
@@ -25,78 +25,90 @@
     <script>
       var labels = ["1", 
                     "2", 
-                    "3", 
+                    //"3", 
                     "4", 
                     "5", 
-                    "7", 
+                    //"7", 
                     "8", 
                     "9", 
+                    "10",
                     "12", 
-                    "14", 
+                    "13",
+                    //"14", 
                     "15", 
-                    "16", 
-                    "17", 
+                    //"16", 
+                    //"17", 
                     "18", 
                     "19", 
                     "20", 
-                    "21", 
-                    "22", 
-                    "23", 
-                    "24", 
+                    //"21", 
+                    //"22", 
+                    //"23", 
+                    //"24", 
                     "26", 
-                    "27", 
+                    //"27", 
                     "28", 
                     "33", 
                     "34", 
                     "35", 
-                    "36", 
-                    "6", 
-                    "71", 
-                    "72", 
-                    "73", 
-                    "74", 
-                    "11", 
-                    "10",
-                    "13"];
+                    //"36", 
+                    //"6", 
+                    //"71", 
+                    //"72", 
+                    //"73", 
+                    //"74", 
+                    //"11", 
+                    //"10",
+                    //"13"
+                    ];
       var labelIndex = 0;
       var map;
       var olds = []
       var colorMap = new Map();
       var markers = [{lng: 4.408968, lat: 51.2219755916},
 {lng: 4.410840000000001, lat: 51.2218305916},
-{lng: 4.409477999999999, lat: 51.2199485916},
+//{lng: 4.409477999999999, lat: 51.2199485916},
 {lng: 4.409815, lat: 51.2204715916},
 {lng: 4.410003, lat: 51.2208395916},
-{lng: 4.411274000000001, lat: 51.2224615916},
+//lng: 4.411274, lat: 51.222462},
 {lng: 4.4113180000000005, lat: 51.2226255916},
 {lng: 4.410716, lat: 51.2227095916},
-{lng: 4.411513, lat: 51.2232655916},
-{lng: 4.411270000000001, lat: 51.2236065916},
+//{lng: 4.4104321, lat: 51.2232395},
+//{lng: 4.411512614, lat: 51.223265814},
+//51.223231, 4.410451
+{lng: 4.410451, lat:51.223231},
+//51.223273, 4.411509
+{lng: 4.411509, lat: 51.223273},
+//{lng: 4.4104006, lat: 51.2235889},
+//51.223507, 4.410499
+//51.223510, 4.410481
+{lng: 4.410481, lat: 51.223510},
 {lng: 4.411138000000001, lat: 51.2235415916},
-{lng: 4.41149, lat: 51.2233995916},
+//{lng: 4.41149, lat: 51.2233995916},
 //{lng: 4.411042, lat: 51.2239435916},
-//{lng: 4.4111769999999995, lat: 51.2239155916},
-//{lng: 4.411217, lat: 51.2240075916},
+{lng: 4.4111769999999995, lat: 51.2239155916},
+{lng: 4.411217, lat: 51.2240075916},
 {lng: 4.411827, lat: 51.2241545916},
-{lng: 4.41257, lat: 51.2239175916},
-{lng: 4.412696, lat: 51.2237245916},
-{lng: 4.413168, lat: 51.2237055916},
-{lng: 4.4128609999999995, lat: 51.2233475916},
+//{lng: 4.41257, lat: 51.2239175916},
+//{lng: 4.412696, lat: 51.2237245916},
+//{lng: 4.413168, lat: 51.2237055916},
+//{lng: 4.4128609999999995, lat: 51.2233475916},
 {lng: 4.413572, lat: 51.2236465916},
-{lng: 4.412419, lat: 51.2236195916},
+//{lng: 4.412419, lat: 51.2236195916},
 {lng: 4.412349, lat: 51.2234865916},
 {lng: 4.409707, lat: 51.2226665916},
 {lng: 4.409954, lat: 51.2231225916},
 {lng: 4.410818, lat: 51.2229495916},
-{lng: 4.410559, lat: 51.2224735916},
-{lng: 4.420749, lat: 51.1844615916},
-{lng: 4.42074, lat: 51.1844395916},
-{lng: 4.42072, lat: 51.1844185916},
-{lng: 4.420752000000001, lat: 51.1844065916},
-{lng: 4.4207860000000005, lat: 51.1843915916},
-{lng: 4.410311, lat: 51.2232605916},
-{lng: 4.410452, lat: 51.2232325916},
-{lng: 4.410467999999999, lat: 51.2235315916}]
+//{lng: 4.410559, lat: 51.2224735916},
+//{lng: 4.420749, lat: 51.1844615916},
+//{lng: 4.42074, lat: 51.1844395916},
+//{lng: 4.42072, lat: 51.1844185916},
+//{lng: 4.420752000000001, lat: 51.1844065916},
+//{lng: 4.4207860000000005, lat: 51.1843915916},
+//{lng: 4.410311, lat: 51.2232605916},
+//{lng: 4.410452, lat: 51.2232325916},
+//{lng: 4.410467999999999, lat: 51.2235315916}
+]
 
       function initMap() {
         //delete map;
@@ -133,17 +145,17 @@
 
 
         //alert(layer);
-        map.data.addListener('mouseover', function(event) {
-          map.data.revertStyle();
-          map.data.overrideStyle(event.feature, {strokeWeight: 8});
-        });
+        //map.data.addListener('mouseover', function(event) {
+        //  map.data.revertStyle();
+        //  map.data.overrideStyle(event.feature, {strokeWeight: 8});
+        //});
 
-        map.data.addListener('mouseout', function(event) {
-          map.data.revertStyle();
-        });
-        map.data.addListener('click', function(event) {
-          event.feature.setProperty('isColorful', true);
-        });
+        //map.data.addListener('mouseout', function(event) {
+        //  map.data.revertStyle();
+        //});
+        //map.data.addListener('click', function(event) {
+        //  event.feature.setProperty('isColorful', true);
+        //});
         nodes = map.data.loadGeoJson(
             //'https://storage.googleapis.com/mapsdevsite/json/google.json');
             'nodes_template.json?nonce=' + Math.random().toString(36).substring(7));
@@ -232,7 +244,10 @@
         // Call revertStyle() to remove all overrides. This will use the style rules
         // defined in the function passed to setStyle()
 
-        setTimeout( updateMap, 1000 )
+        $.get("latest_date?nonce=" + Math.random().toString(36).substring(7), function(data) {
+            document.getElementById("update").innerHTML = "Latest update: " + data;
+        });
+        setTimeout( updateMap, 5000 )
 
         console.log("Updated!");
 
@@ -256,5 +271,6 @@
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDndf9L1iyomd9cY7WBSxJr1tFC_eOAFJY&callback=initMap">
     </script>
+  <div id="update">Latest update</div>
   </body>
 </html>

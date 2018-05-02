@@ -8,7 +8,7 @@
       /* Always set the map height explicitly to define the size of the div
        * element that contains the map. */
       #map {
-        height: 100%;
+        height: 95%;
       }
       /* Optional: Makes the sample page fill the window. */
       html, body {
@@ -135,17 +135,17 @@
 
 
         //alert(layer);
-        map.data.addListener('mouseover', function(event) {
-          map.data.revertStyle();
-          map.data.overrideStyle(event.feature, {strokeWeight: 8});
-        });
+        //map.data.addListener('mouseover', function(event) {
+        //  map.data.revertStyle();
+        //  map.data.overrideStyle(event.feature, {strokeWeight: 8});
+        //});
 
-        map.data.addListener('mouseout', function(event) {
-          map.data.revertStyle();
-        });
-        map.data.addListener('click', function(event) {
-          event.feature.setProperty('isColorful', true);
-        });
+        //map.data.addListener('mouseout', function(event) {
+        //  map.data.revertStyle();
+        //});
+        //map.data.addListener('click', function(event) {
+        //  event.feature.setProperty('isColorful', true);
+        //});
         nodes = map.data.loadGeoJson(
             //'https://storage.googleapis.com/mapsdevsite/json/google.json');
             'nodes_mobile_template.json?nonce=' + Math.random().toString(36).substring(7));
@@ -234,6 +234,9 @@
         // Call revertStyle() to remove all overrides. This will use the style rules
         // defined in the function passed to setStyle()
 
+        $.get("latest_date_mobile?nonce=" + Math.random().toString(36).substring(7), function(data) {
+            document.getElementById("update").innerHTML = "Latest update: " + data;
+        });
         setTimeout( updateMap, 1000 )
 
         console.log("Updated!");
@@ -258,5 +261,6 @@
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDndf9L1iyomd9cY7WBSxJr1tFC_eOAFJY&callback=initMap">
     </script>
+  <div id="update">Latest update</div>
   </body>
 </html>

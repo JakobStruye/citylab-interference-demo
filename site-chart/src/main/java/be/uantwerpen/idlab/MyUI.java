@@ -44,9 +44,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import time;
-import datetime;
-
+import java.util.Date;
+import java.util.Iterator;
+import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.text.DecimalFormat;
+import java.util.Random;
+import com.vaadin.annotations.Push;
+import com.vaadin.shared.communication.PushMode;
+import java.util.stream.Stream;
+import static java.util.concurrent.TimeUnit.*;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledFuture;
 /**
  * This UI is the application entry point. A UI may either represent a browser window 
  * (or tab) or some part of an HTML page where a Vaadin application is embedded.
@@ -55,6 +65,7 @@ import datetime;
  * overridden to add component to the user interface and initialize non-component functionality.
  */
 @Theme("mytheme")
+@Push(PushMode.MANUAL)
 public class MyUI extends UI {
 
     private static final Path directory = Paths.get("/home/jstruye/citylab-interference-demo");
@@ -70,18 +81,39 @@ public class MyUI extends UI {
     private String freq = null;
     private String windowRange = null;
 
+    private int buildNonce = 0;
+    Random generator = new Random();
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    private ScheduledFuture<?> future = null;    
+
     private Component chartComponent = null;
     private Label mostRecent = null;
 
+    private UI ui;
 
+    private int hoursOffset = 8;
+    private int predictionStep = 100;
+
+
+    private ArrayList<Double> data3 = new ArrayList<>();
+     private    List<String> zeroLabels = new ArrayList<>();
+    private     ArrayList<Double> data2 = new ArrayList<>();
+    private     ArrayList<Double> data = new ArrayList<>();
+    private     ArrayList<Double> timestamps = new ArrayList<>();
+    private     ArrayList<String> timestampsNice = new ArrayList<>();
+    private     ArrayList<String> timestampsRaw = new ArrayList<>();
+        private LineChartConfig config = new LineChartConfig();
 
     @Override
     protected void init(VaadinRequest vaadinRequest) {
+        ui = UI.getCurrent();
         boolean isMobile = false;
         String frag = Page.getCurrent().getUriFragment();
         if (frag != null && frag.equals("mobile")) {
             isMobile = true;
+            hoursOffset = 0;
         }
+
         final VerticalLayout layout = new VerticalLayout();
 
 
@@ -119,13 +151,22 @@ public class MyUI extends UI {
             } else {
                 node = null;
             }
-            buildChart(layout);
+            scheduleBuildChart(layout);
         });
 
         final ComboBox freqBox = new ComboBox();
         List<String> freqs = new ArrayList<>();
         try {
             Files.readAllLines(Paths.get(directory.toString(), "freqs")).forEach(line-> {freqs.add(line);});
+            if (isMobile) {
+                Iterator<String> it = freqs.iterator();
+                while (it.hasNext()) {
+                    //Mobile only does 2.4
+                    if (!it.next().startsWith("2")) {
+                        it.remove();
+                    }
+                }
+             }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -137,7 +178,7 @@ public class MyUI extends UI {
             } else {
                 freq = null;
             }
-            buildChart(layout);
+            scheduleBuildChart(layout);
         });
 
         RadioButtonGroup<String> windowGroup = new RadioButtonGroup<>();
@@ -145,10 +186,14 @@ public class MyUI extends UI {
         windowGroup.setItems(LONGRANGE, SHORTRANGE);
         windowGroup.addSelectionListener((SingleSelectionListener<String>) singleSelectionEvent -> {
             windowRange = singleSelectionEvent.getValue();
-            buildChart(layout);
+            scheduleBuildChart(layout);
         });
-        windowGroup.setSelectedItem(LONGRANGE);
-
+        if (!isMobile) {
+            windowGroup.setSelectedItem(LONGRANGE);
+        } else {
+            windowGroup.setSelectedItem(SHORTRANGE);
+            windowGroup.setVisible(false);
+       }
 
         HorizontalLayout options = new HorizontalLayout();
         options.addComponent(nodeBox);
@@ -249,116 +294,64 @@ public class MyUI extends UI {
         this.chartComponent.setSizeFull();
         layout.addComponent(this.chartComponent);
         layout.setExpandRatio(this.chartComponent, 1.0f);
-
+        buildChart(layout);
 	mostRecent = new Label();
         layout.addComponent(mostRecent);
         layout.setComponentAlignment(mostRecent, Alignment.BOTTOM_RIGHT);
         layout.setSizeFull();
-        layout.setHeight("800px");
-        this.setSizeFull();
-
+        layout.setHeight("800px"); this.setSizeFull();
     }
 
-    private void buildChart(VerticalLayout layout) {
+    private void scheduleBuildChart(VerticalLayout layout) {
         if (node == null || freq == null) {
             return;
         }
+       if (future != null) {
+           System.out.println("CANCEL");
+           future.cancel(true);
+           future = null;
+       }
+       //timer = new java.util.Timer();
+       //int thisNonce = buildChart(layout);
+       future = scheduler.scheduleWithFixedDelay( 
+            new java.util.TimerTask() {
+                @Override
+                public void run() {
+                    updateChart();
+                }
+            },
+            0, 
+            5,
+            SECONDS 
+        );
+    }
+
+
+    private int buildChart(VerticalLayout layout) {
+        return buildChart(layout, null);
+    }
+    private int buildChart(VerticalLayout layout, Integer nonce) {
+        //if (nonce != null && nonce != buildNonce) {
+        //    return;
+        //}
+        int thisNonce;
+        if (nonce == null) {   
+            thisNonce = generator.nextInt(Integer.MAX_VALUE);
+            buildNonce = thisNonce;
+        } else {
+            thisNonce = buildNonce;
+        }
+        //int thisNonce = buildNonce;
+        
+
 
 
         // generate data
-        List<Double> data = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(Paths.get(directory.toString(), "../predicted/" + node + "/" + freq + ".out").toString()))) {
-            String line;
+        //Date dateFrom = Date.from( Instant.ofEpochSecond( new Double(windowMin).longValue() ) );
+        //Date dateTo = Date.from( Instant.ofEpochSecond( new Double(windowMax).longValue() ) );
+        //System.out.println("FROM TO" +  dateFrom.toString() + " " +  dateTo.toString());
+        
 
-            while ((line = br.readLine()) != null) {
-                String[] splits = line.split(",");
-                if (splits.length < 2) {
-                    break;
-                }
-                data.add(new Double(splits[1]) - (CHART_PREDICT_WIDTH / 2.0));
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-
-
-        // generate data
-        List<Double> data2 = new ArrayList<>(data);
-        for (int i = 0; i < data2.size(); i++) {
-            data2.set(i, data2.get(i) + CHART_PREDICT_WIDTH);
-        }
-
-        // generate data
-        String mostRecentDate = null;
-        List<Double> data3 = new ArrayList<>();
-        List<Double> timestamps = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(Paths.get(directory.toString(), "../smoothed/" + node + "/" + freq + ".out").toString()))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] splits = line.split(",");
-                if (splits.length < 2) {
-                    break;
-                }
-                data3.add(new Double(splits[1]));
-                double date = time.mktime(datetime.datetime.strptime(s, "%d/%m/%Y").timetuple());
-                timestamps.append(date);
-                mostRecentDate = splits[0];
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        if (mostRecentDate != null) {
-            mostRecent.setValue("Most recent date: " + mostRecentDate.toString());
-        }
-
-        List<String> zeroLabels = new ArrayList<>();
-        for (date : timestamps) {
-            zeroLabels.add(new Double(date).toString());
-        }
-
-        String windowMin;
-        String windowMax;
-        switch(this.windowRange) {
-            case LONGRANGE:
-                //24h
-                double startPoint = timestamps.get(timestamps.size() - 1) - (24*60*60);
-                int skips = 0;
-                for (date : timestamps) {
-                    if (date < startPoint) {
-                        skips++;
-                    } else {
-                        break;
-                    }
-                }
-                windowMin = zeroLabels.get(skips);
-                windowMax = zeroLabels.get(zeroLabels.size() - 1);
-                break;
-            case SHORTRANGE:
-                //30min
-                double startPoint = timestamps.get(timestamps.size() - 1) - (30*60);
-                int skips = 0;
-                for (date : timestamps) {
-                    if (date < startPoint) {
-                        skips++;
-                    } else {
-                        break;
-                    }
-                }
-                windowMin = zeroLabels.get(skips);
-                windowMax = zeroLabels.get(zeroLabels.size() - 1);
-                break;
-            default:
-                windowMin = zeroLabels.get(0);
-                windowMax = zeroLabels.get(zeroLabels.size() - 1);
-                break;
-
-        }
-        LineChartConfig config = new LineChartConfig();
         config
                 .data()
                 //.labels("January", "February", "March", "April", "May", "June", "July", "August")
@@ -376,7 +369,10 @@ public class MyUI extends UI {
                 .and();
 
         config.
-                options()
+                options().
+                legend().display(false).and().
+                animation().duration(0).and()
+                .elements().point().radius(0).and().and()
                 .maintainAspectRatio(false)
                 .elements()
                 .line()
@@ -386,14 +382,6 @@ public class MyUI extends UI {
                 .scales()
                 .add(Axis.Y, new LinearScale().stacked(false))
                 .and()
-                .scales()
-                .add(Axis.X, new CategoryScale()
-                        .ticks().min(windowMin).max(windowMax).and()
-                    .display(false)
-                    .scaleLabel()
-                    .display(false)
-                    .and())
-                .and()
                 .title()
                 .display(true)
                 //.text("Advanced line fill options")
@@ -401,21 +389,21 @@ public class MyUI extends UI {
                 .done();
 
         LineDataset lds = (LineDataset) config.data().getDatasetAtIndex(2);
-        lds.label("D"+0);
+        //lds.label("D"+0);
         int[] rgb = DemoUtils.getRgbColor(2);
         lds.borderColor(ColorUtils.toRgb(rgb));
         lds.backgroundColor(ColorUtils.toRgba(rgb, 0.5));
         lds.dataAsList(data);
 
         LineDataset lds2 = (LineDataset) config.data().getDatasetAtIndex(1);
-        lds2.label("D"+1);
+        //lds2.label("D"+1);
         int[] rgb2 = DemoUtils.getRgbColor(2);
         lds2.borderColor(ColorUtils.toRgb(rgb2));
         lds2.backgroundColor(ColorUtils.toRgba(rgb2, 0.5));
         lds2.dataAsList(data2);
 
         LineDataset lds3 = (LineDataset) config.data().getDatasetAtIndex(0);
-        lds3.label("D"+2);
+        //lds3.label("D"+2);
         int[] rgb3 = DemoUtils.getRgbColor(1);
         lds3.borderColor(ColorUtils.toRgb(rgb3));
         lds3.backgroundColor(ColorUtils.toRgba(rgb3, 1.0));
@@ -431,15 +419,220 @@ public class MyUI extends UI {
         //}
 
         ChartJs chart = new ChartJs(config);
-        chart.setJsLoggingEnabled(true);
+        //chart.setJsLoggingEnabled(true);
 
         chart.addClickListener((a,b) ->
                 DemoUtils.notification(a, b, config.data().getDatasets().get(a)));
         chart.setSizeFull();
-
         layout.replaceComponent(chartComponent, chart);
         this.chartComponent = chart;
+        //chartComponent.setVisible(false);
         layout.setExpandRatio(chart, 1.0f);
+        //updateChart();
+        return thisNonce;
+    }
+
+    private void updateChart() {
+        System.out.println("UPD");
+        System.out.println(node);
+        System.out.println(freq);
+        if (node == null || freq == null) {
+            System.out.println(node);
+            System.out.println(freq);
+            return;
+        }
+        System.out.println(chartComponent.getClass().getName());
+        chartComponent.setVisible(true);
+            ui.accessSynchronously(new Runnable() {
+                @Override
+                public void run() {
+                    ui.push();
+                }
+           });
+        data.clear();
+        data2.clear();
+        data3.clear();
+        zeroLabels.clear();
+        timestamps.clear();
+        timestampsRaw.clear();
+        timestampsNice.clear();
+        System.out.println(directory.toString() + "../smoothed/" + node + "/" + freq + ".out");
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss.SSS");
+        SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String mostRecentDate = null;
+        try (Stream<String> br = Files.lines(Paths.get(directory.toString(), "../smoothed/" + node + "/" + freq + ".out"))) {
+            //String line;
+            for (String line: (Iterable<String>) br::iterator) {
+            //while ((line = br.readLine()) != null) {
+                try {
+                String[] splits = line.split(",");
+                if (splits.length < 2) {
+                    continue;
+                }
+                Double val = new Double(splits[1]);
+                if (val > 20 || val < -115) {
+                     //skip
+                     continue;
+                }
+                
+                data3.add(val);
+                //System.out.println(splits[0]);
+                timestampsRaw.add(splits[0]);
+                Date date = formatter.parse(splits[0]); 
+                long epoch = date.getTime();
+                epoch += hoursOffset * 3600 * 1000;
+                double unixdate = epoch / 1000.0;
+                //System.out.println(unixdate);
+                //System.out.printf("dexp: %f\n", unixdate);
+
+                timestamps.add(unixdate);
+                String niceDate = formatter2.format(new Date(epoch));
+                mostRecentDate = niceDate;
+                timestampsNice.add(niceDate);
+                } catch (Exception e) {
+                    //e.printStackTrace();
+                    System.out.println("Failed to parse line:" + line);
+                }
+                
+            }
+            //System.out.println(br.readLine());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (mostRecentDate != null) {
+            mostRecent.setValue("Most recent date: " + mostRecentDate.toString());
+        }
+        System.out.println("MOSTR");
+        // generate data
+        try (BufferedReader br = new BufferedReader(new FileReader(Paths.get(directory.toString(), "../predicted/" + node + "/" + freq + ".out").toString()))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                try {
+                String[] splits = line.split(",");
+                if (splits.length < 2) {
+                    break;
+                }
+                
+                data.add(new Double(splits[1]) - (CHART_PREDICT_WIDTH / 2.0));
+                //if (data.size() > timestampsNice.size()) {
+                //    System.out.println("PREDICTPLUS");
+                //    Date date = formatter.parse(splits[0]); 
+                //    long epoch = date.getTime();
+                //    epoch += hoursOffset * 3600 * 1000 + 600; 
+                //    double unixdate = epoch / 1000.0;
+                //    timestamps.add(unixdate);
+                //    String niceDate = formatter2.format(new Date(epoch));
+                //    timestampsNice.add(niceDate); //TODO plus 
+                //}
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        int diff = predictionStep + data3.size() - data.size();
+        for (int i = 0; i < diff ; i++) {
+            data.add(0, 0.0);
+        }
+        data2.addAll(data);
+        System.out.println("" + data.size() + " vs " + data3.size());
+
+
+        // generate data
+        for (int i = 0; i < data2.size(); i++) {
+            data2.set(i, data2.get(i) + CHART_PREDICT_WIDTH);
+        }
+        for (int i=0; i < predictionStep; i++) {
+            Double newepoch = timestamps.get(timestamps.size()-1) + 6.0;
+            timestamps.add(newepoch);
+            timestampsNice.add(formatter2.format(new Date(newepoch.longValue() * 1000L)));
+        }
+        System.out.println(mostRecentDate.toString());
+        DecimalFormat df = new DecimalFormat("#");
+        df.setMaximumFractionDigits(3);
+        //for (Double date : timestamps) {
+        for (String date : timestampsNice) {
+
+
+            //zeroLabels.add(df.format(date));
+            zeroLabels.add(date);
+        }
+
+        String windowMin;
+        String windowMax;
+        double startPoint;
+        int skips = 0;
+        switch(this.windowRange) {
+            case LONGRANGE:
+                //24h
+                startPoint = timestamps.get(timestamps.size() - 1) - (24*60*60);
+                skips = 0;
+                for (Double date : timestamps) {
+                    if (date < startPoint) {
+                        skips++;
+                    } else {
+                        break;
+                    }
+                }
+                windowMin = zeroLabels.get(skips);
+                windowMax = zeroLabels.get(zeroLabels.size() - 1);
+                break;
+            case SHORTRANGE:
+                //30min
+                startPoint = timestamps.get(timestamps.size() - 1) - (30*60);
+                skips = 0;
+                for (Double date : timestamps) {
+                    if (date < startPoint) {
+                        skips++;
+                    } else {
+                        break;
+                    }
+                }
+                System.out.println("skips" + skips);
+                windowMin = zeroLabels.get(skips);
+                windowMax = zeroLabels.get(zeroLabels.size() - 1);
+                break;
+            default:
+                windowMin = zeroLabels.get(0);
+                windowMax = zeroLabels.get(zeroLabels.size() - 1);
+                break;
+
+        }
+        data.subList(0,skips).clear();
+        data2.subList(0,skips).clear();
+        data3.subList(0,skips).clear();
+        zeroLabels.subList(0,skips).clear();
+        timestamps.subList(0,skips).clear();
+        timestampsRaw.subList(0,skips).clear();
+        timestampsNice.subList(0,skips).clear();
+
+        config
+                .data()
+                //.labels("January", "February", "March", "April", "May", "June", "July", "August")
+                .labels(zeroLabels.toArray(new String[]{}));
+        config.options().scales()
+                .add(Axis.X, new CategoryScale()
+                        .ticks().min(windowMin).max(windowMax).and()
+                    .display(true)
+                    .scaleLabel()
+                    .display(true)
+                    .and())
+                .and();
+        ((ChartJs) this.chartComponent).update(); 
+
+        //if (nonce != null) {
+            ui.accessSynchronously(new Runnable() {
+                @Override
+                public void run() {
+                    ui.push();
+                }
+           });
+        //}
     }
 
     @WebServlet(urlPatterns = "/*", name = "MyUIServlet", asyncSupported = true)
