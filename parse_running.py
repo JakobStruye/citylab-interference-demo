@@ -19,7 +19,7 @@ while True:
         if not exists(raw_parse):
             makedirs(raw_parse)
         dump_dir = dump_dir_base# + node + "/output/"
-        smooth_dir = smooth_dir_base + node + "/output/"
+        smooth_dir = smooth_dir_base# + node + "/output/"
         if not exists(smooth_dir):
             makedirs(smooth_dir)
 
