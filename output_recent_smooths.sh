@@ -1,7 +1,7 @@
 #!/bin/bash
 freq=$1
 #echo $freq
-cd ~/smoothed/output/
+cd ~/smoothed/
 if [ -f ${freq}.out.line ]; then
     linefrom=$(cat ${freq}.out.line)
 else
