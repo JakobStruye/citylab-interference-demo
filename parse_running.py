@@ -8,12 +8,11 @@ from platform import uname
 from time import sleep
 
 import pyodbc
-import os
+import sys
 server = 'citylab.database.windows.net'
 database = 'citylab'
 username = 'jstruye'
-print()
-password = os.environ("SQLPASS")
+password = sys.argv[1]
 driver= '{ODBC Driver 17 for SQL Server}'
 cnxn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password)
 cursor = cnxn.cursor()
