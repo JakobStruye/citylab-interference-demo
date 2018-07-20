@@ -7,6 +7,31 @@ from shared import *
 from platform import uname
 from time import sleep
 
+import pyodbc
+import os
+server = 'citylab.database.windows.net'
+database = 'citylab'
+username = 'jstruye'
+print()
+password = os.environ("SQLPASS")
+driver= '{ODBC Driver 17 for SQL Server}'
+cnxn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password)
+cursor = cnxn.cursor()
+
+myname = uname()[1].split(".")[0]
+
+try:
+    cursor.execute("SELECT TOP 1 NULL FROM " + myname)
+except:
+    freqs.sort()
+    sql = "CREATE TABLE " + myname + " ("
+    for freq in freqs:
+        sql += "f"+str(freq) + " SMALLINT, "
+    sql = sql[:-2]
+    sql += ")"
+    print(sql)
+    cursor.execute(sql)
+
 #freqs = channels.values()
 while True:
     sleep(1)
@@ -32,6 +57,7 @@ while True:
 
         times.sort()
         times = [datetime.datetime.strftime(ts, "%Y-%m-%d_%H-%M-%S.%f")[:-3] for ts in times]
+        freqlists = []
         #times = times[:1200]
         for freq in freqs:
             these_times = []
@@ -45,7 +71,6 @@ while True:
                         f.write(time + "," + str(val) +  "\n")
                         raw_vals.append(val)
                         these_times.append(time)
-
             smooth_file = smooth_dir + freq + ".out"
             if exists(smooth_file) and stat(smooth_file).st_size > 0:
                 smooth_val = float(subprocess.check_output(['tail', '-1', smooth_file]).split(",")[1])
@@ -61,8 +86,27 @@ while True:
                     smooth_vals.append(val)
                     smooth_f.write(these_times[i] + "," + str(val) + "\n")
                     prev_val = val
+            freqlists.append(raw_vals)
+        entrieslist = []
+        for i in range(len(freqlists[0])):
+            entries = []
+            for freqlist in freqlists:
+                try:
+                    entries.append(freqlist[i])
+                except:
+                    entries.append(0)
+            entrieslist.append(entries)
 
 
+        for entries in entrieslist:
+            sql = "insert into " + myname + " values ("
+            for entry in entries:
+                sql += str(entry) + ", "
+            sql = sql[:-2]
+            sql += ")"
+            print(sql)
+            cursor.execute(sql)
+        cnxn.commit()
         for time in times:
             remove(dump_dir + time)
 
