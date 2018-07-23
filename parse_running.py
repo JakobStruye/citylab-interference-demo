@@ -13,7 +13,9 @@ import sys
 
 from azure.cosmosdb.table.tableservice import TableService
 from azure.cosmosdb.table.models import Entity, EntityProperty, EdmType
+from azure.common import AzureHttpError
 import traceback
+import random
 
 the_connection_string = "DefaultEndpointsProtocol=https;AccountName=citylab;AccountKey=ZyNTFkoIEuJWu17JdHO9QiivRo3aHGmUkxZwfLHOVep4KswAZoINnfFFQ5xONQhp3OajntW90OBPxrj0bgcnLA==;TableEndpoint=https://citylab.table.cosmosdb.azure.com:443/;"
 table = TableService(endpoint_suffix = "table.cosmosdb.azure.com", connection_string= the_connection_string)
@@ -31,6 +33,10 @@ table = TableService(endpoint_suffix = "table.cosmosdb.azure.com", connection_st
 #cursor = cnxn.cursor()
 
 myname = socket.gethostname().split(".")[0]#uname()[1].split(".")[0]
+ratelimit_steps = 0
+ratelimit_max_steps = 5
+ratelimit_init_secs = 10
+ratelimit_cur_secs = ratelimit_init_secs
 
 #try:
 #    cursor.execute("SELECT TOP 1 NULL FROM " + myname)
@@ -119,18 +125,29 @@ while True:
                     entries.append(0)
             entrieslist.append(entries)
 
-
         for e in range(len(entrieslist)):
-            assert len(entrieslist) == len(times)
             entries = entrieslist[e]
             time = times[e]
             #sql = "insert into " + myname + " values ("
             entity = build_entity(myname, entries, time)
-            try:
-                table.insert_entity('citylab', entity)
-            except:
-                traceback.print_exc()
-                pass #Probably duplicate, ignore for now
+            success = False
+            while not success:
+                try:
+                    table.insert_entity('citylab', entity)
+                    success = True
+                except AzureHttpError as e:
+                    
+                    traceback.print_exc()
+    	            if e.status_code == 429:
+                        backoff_time = ratelimit_cur_secs / 2 + int(random.random() * ratelimit_cur_secs)
+                        print("Rate limit, retrying after", backoff_time, "seconds")
+                        sleep(backoff_time)
+                        if ratelimit_steps < ratelimit_max_steps:
+                            ratelimit_steps += 1
+                            ratelimit_cur_secs *= 2
+                    success = False
+                ratelimit_steps = 0
+                ratelimit_cur_secs = ratelimit_init_secs
             #for entry in entries:
             #    sql += str(entry) + ", "
             #sql = sql[:-2]
@@ -138,6 +155,6 @@ while True:
             #print(sql)
             #cursor.execute(sql)
         #cnxn.commit()
-        #for time in times:
-        #    remove(dump_dir + time)
+        for time in times:
+            remove(dump_dir + time)
 
