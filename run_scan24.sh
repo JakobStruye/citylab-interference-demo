@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Read all the freqs to scan to one line
-freqs=$(tr '\n' ' ' < freqs)
+freqs=$(tr '\n' ' ' < /users/jstruye/citylab-interference-demo/freqs)
 
 # Determine which physical interface to use, differs from deployment to deployment
 ATHPATH=/sys/kernel/debug/ieee80211/phy0/ath10k

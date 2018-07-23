@@ -37,7 +37,7 @@ channels = dict({
 })
 
 freqs = []
-with open('freqs') as f:
+with open('/users/jstruye/citylab-interference-demo/freqs') as f:
     freqs = f.read().split('\n')[:-1]
 
 basedir = "/users/jstruye/"

@@ -13,7 +13,7 @@ import sys
 
 from azure.cosmosdb.table.tableservice import TableService
 from azure.cosmosdb.table.models import Entity, EntityProperty, EdmType
-from azure.common import AzureHttpError
+from azure.common import AzureHttpError, AzureConflictHttpError
 import traceback
 import random
 
@@ -32,7 +32,7 @@ table = TableService(endpoint_suffix = "table.cosmosdb.azure.com", connection_st
 #cnxn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password)
 #cursor = cnxn.cursor()
 
-myname = socket.gethostname().split(".")[0]#uname()[1].split(".")[0]
+myname = socket.gethostbyaddr(socket.gethostbyname(socket.gethostname()))[0].split(".")[0]
 ratelimit_steps = 0
 ratelimit_max_steps = 5
 ratelimit_init_secs = 10
@@ -94,14 +94,14 @@ while True:
                 for time in times:
                     if (True): #stat(dump_dir + time).st_size > 400000) == (int(freq) > 4000):
                         signalstr = subprocess.check_output(
-                            ['./fft_get_max_rssi.out', dump_dir + time, freq])
+                            ['/users/jstruye/citylab-interference-demo/fft_get_max_rssi.out', dump_dir + time, freq])
                         val = int(signalstr)
                         f.write(time + "," + str(val) +  "\n")
                         raw_vals.append(val)
                         these_times.append(time)
             smooth_file = smooth_dir + freq + ".out"
             if exists(smooth_file) and stat(smooth_file).st_size > 0:
-                smooth_val = float(subprocess.check_output(['tail', '-1', smooth_file]).split(",")[1])
+                smooth_val = float(subprocess.check_output(['tail', '-1', smooth_file]).decode('utf-8').split(",")[1])
             else:
                 #smooth_val = sum(raw_vals[:100]) / 100.0#np.mean(raw_vals[:100])
                 smooth_val = -80.0
@@ -135,15 +135,19 @@ while True:
                 try:
                     table.insert_entity('citylab', entity)
                     success = True
+                except AzureConflictHttpError as e:
+                    # Probably failed to remove dump last time, ignore
+                    success = True
                 except AzureHttpError as e:
-                    
-    	            if e.status_code == 429:
+                    if e.status_code == 429:
                         backoff_time = ratelimit_cur_secs / 2 + int(random.random() * ratelimit_cur_secs)
                         print("Rate limit, retrying after", backoff_time, "seconds")
                         sleep(backoff_time)
                         if ratelimit_steps < ratelimit_max_steps:
                             ratelimit_steps += 1
                             ratelimit_cur_secs *= 2
+                    else:
+                        raise e
                     success = False
                 ratelimit_steps = 0
                 ratelimit_cur_secs = ratelimit_init_secs
