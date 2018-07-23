@@ -13,6 +13,7 @@ import sys
 
 from azure.cosmosdb.table.tableservice import TableService
 from azure.cosmosdb.table.models import Entity, EntityProperty, EdmType
+import traceback
 
 the_connection_string = "DefaultEndpointsProtocol=https;AccountName=citylab;AccountKey=ZyNTFkoIEuJWu17JdHO9QiivRo3aHGmUkxZwfLHOVep4KswAZoINnfFFQ5xONQhp3OajntW90OBPxrj0bgcnLA==;TableEndpoint=https://citylab.table.cosmosdb.azure.com:443/;"
 table = TableService(endpoint_suffix = "table.cosmosdb.azure.com", connection_string= the_connection_string)
@@ -128,6 +129,7 @@ while True:
             try:
                 table.insert_entity('citylab', entity)
             except:
+                traceback.print_exc()
                 pass #Probably duplicate, ignore for now
             #for entry in entries:
             #    sql += str(entry) + ", "
