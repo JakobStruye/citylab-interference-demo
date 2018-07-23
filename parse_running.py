@@ -5,33 +5,56 @@ import subprocess
 #import numpy as np
 from shared import *
 from platform import uname
-from time import sleep
+from time import sleep, mktime
+import socket
 
 import pyodbc
 import sys
-server = 'citylab.database.windows.net'
-database = 'citylab'
-username = 'jstruye'
-password = sys.argv[1]
-driver= '{ODBC Driver 17 for SQL Server}'
-cnxn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password)
-cursor = cnxn.cursor()
 
-myname = uname()[1].split(".")[0]
+from azure.cosmosdb.table.tableservice import TableService
+from azure.cosmosdb.table.models import Entity, EntityProperty, EdmType
 
-try:
-    cursor.execute("SELECT TOP 1 NULL FROM " + myname)
-except:
-    freqs.sort()
-    sql = "CREATE TABLE " + myname + " ("
-    for freq in freqs:
-        sql += "f"+str(freq) + " SMALLINT, "
-    sql = sql[:-2]
-    sql += ")"
-    print(sql)
-    cursor.execute(sql)
+the_connection_string = "DefaultEndpointsProtocol=https;AccountName=citylab;AccountKey=ZyNTFkoIEuJWu17JdHO9QiivRo3aHGmUkxZwfLHOVep4KswAZoINnfFFQ5xONQhp3OajntW90OBPxrj0bgcnLA==;TableEndpoint=https://citylab.table.cosmosdb.azure.com:443/;"
+table = TableService(endpoint_suffix = "table.cosmosdb.azure.com", connection_string= the_connection_string)
+
+#task = {'PartitionKey': 'nodeTest', 'RowKey': '001', 'f1' : -101}
+#table.insert_entity('citylab', task)
+
+
+#server = 'citylab.database.windows.net'
+#database = 'citylab'
+#username = 'jstruye'
+#password = sys.argv[1]
+#driver= '{ODBC Driver 17 for SQL Server}'
+#cnxn = pyodbc.connect('DRIVER='+driver+';SERVER='+server+';PORT=1433;DATABASE='+database+';UID='+username+';PWD='+ password)
+#cursor = cnxn.cursor()
+
+myname = socket.gethostname().split(".")[0]#uname()[1].split(".")[0]
+
+#try:
+#    cursor.execute("SELECT TOP 1 NULL FROM " + myname)
+#except:
+#    freqs.sort()
+#    sql = "CREATE TABLE " + myname + " ("
+#    for freq in freqs:
+#        sql += "f"+str(freq) + " SMALLINT, "
+#    sql = sql[:-2]
+#    sql += ")"
+#    print(sql)
+#    cursor.execute(sql)
 
 #freqs = channels.values()
+def build_entity(pkey, entries, time):
+    entity = Entity()
+    entity.PartitionKey = pkey
+    time = datetime.datetime.strptime(time, "%Y-%m-%d_%H-%M-%S.%f")
+    epoch = mktime(time.timetuple()) + time.microsecond / 1000000.0
+    entity.RowKey = str(epoch)
+    for f in range(len(freqs)):
+        freq = "f" + str(freqs[f])
+        val = entries[f]
+        entity[freq] = EntityProperty(EdmType.INT32, val)
+    return entity
 while True:
     sleep(1)
     freqs.sort()
@@ -49,7 +72,6 @@ while True:
 
         files = [f for f in listdir(dump_dir)]
         times = [datetime.datetime.strptime(ts, "%Y-%m-%d_%H-%M-%S.%f") for ts in files]
-
         #if len(times) < 120:
         #    #wait a while
         #    break
@@ -63,7 +85,7 @@ while True:
             raw_vals = []
             with open(raw_parse + freq + ".out", 'a') as f:
                 for time in times:
-                    if (stat(dump_dir + time).st_size > 400000) == (int(freq) > 4000):
+                    if (True): #stat(dump_dir + time).st_size > 400000) == (int(freq) > 4000):
                         signalstr = subprocess.check_output(
                             ['./fft_get_max_rssi.out', dump_dir + time, freq])
                         val = int(signalstr)
@@ -97,15 +119,20 @@ while True:
             entrieslist.append(entries)
 
 
-        for entries in entrieslist:
-            sql = "insert into " + myname + " values ("
-            for entry in entries:
-                sql += str(entry) + ", "
-            sql = sql[:-2]
-            sql += ")"
-            print(sql)
-            cursor.execute(sql)
-        cnxn.commit()
+        for e in range(len(entrieslist)):
+            assert len(entrieslist) == len(times)
+            entries = entrieslist[e]
+            time = times[e]
+            #sql = "insert into " + myname + " values ("
+            entity = build_entity(myname, entries, time)
+            table.insert_entity('citylab', entity)
+            #for entry in entries:
+            #    sql += str(entry) + ", "
+            #sql = sql[:-2]
+            #sql += ")"
+            #print(sql)
+            #cursor.execute(sql)
+        #cnxn.commit()
         for time in times:
             remove(dump_dir + time)
 
