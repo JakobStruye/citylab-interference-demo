@@ -125,7 +125,10 @@ while True:
             time = times[e]
             #sql = "insert into " + myname + " values ("
             entity = build_entity(myname, entries, time)
-            table.insert_entity('citylab', entity)
+            try:
+                table.insert_entity('citylab', entity)
+            except:
+                pass #Probably duplicate, ignore for now
             #for entry in entries:
             #    sql += str(entry) + ", "
             #sql = sql[:-2]
