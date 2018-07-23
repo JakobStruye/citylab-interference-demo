@@ -137,7 +137,6 @@ while True:
                     success = True
                 except AzureHttpError as e:
                     
-                    traceback.print_exc()
     	            if e.status_code == 429:
                         backoff_time = ratelimit_cur_secs / 2 + int(random.random() * ratelimit_cur_secs)
                         print("Rate limit, retrying after", backoff_time, "seconds")
