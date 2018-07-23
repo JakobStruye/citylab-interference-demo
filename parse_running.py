@@ -138,6 +138,6 @@ while True:
             #print(sql)
             #cursor.execute(sql)
         #cnxn.commit()
-        for time in times:
-            remove(dump_dir + time)
+        #for time in times:
+        #    remove(dump_dir + time)
 
