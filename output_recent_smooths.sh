@@ -1,7 +1,7 @@
 #!/bin/bash
 freq=$1
 #echo $freq
-cd ~/smoothed/67/output/
+cd ~/smoothed/70/output/
 if [ -f ${freq}.out.line ]; then
     linefrom=$(cat ${freq}.out.line)
 else
@@ -11,4 +11,4 @@ lineto=$(wc -l < ${freq}.out ) &&
 echo ${lineto} > ${freq}.out.line
 #echo $linefrom
 #echo $lineto
-awk "NR >= ${linefrom} && NR < ${lineto}" ${freq}.out &&
+awk "NR >= ${linefrom} && NR < ${lineto}" ${freq}.out &

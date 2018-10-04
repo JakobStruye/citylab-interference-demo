@@ -73,7 +73,7 @@ do
       DOFIVE=false
     else
       echo "two"
-      /sbin/iw dev $devname scan freq 2437 &> /dev/null #2412 2417 2422 2427 2432 2437 2442 2447 2452 2457 2462 &> /dev/null
+      timeout 15 /sbin/iw dev $devname scan freq 2412 2437 2462 &> /dev/null #2412 2417 2422 2427 2432 2437 2442 2447 2452 2457 2462 &> /dev/null
       echo "Done"
       #DOFIVE=true
     fi
@@ -81,9 +81,9 @@ do
     #echo "Scan 2 complete"
     echo disable > $ATHPATH/spectral_scan_ctl
     #echo "Spectral scan disabled"
-    cat $ATHPATH/spectral_scan0 > /home/citylab-user/output/$TIMESTAMP
+    cat $ATHPATH/spectral_scan0 > /home/jstruye/output/$TIMESTAMP
     #echo "Output copied"
-    chown -R citylab-user:citylab-user /home/citylab-user/output/$TIMESTAMP
+    chown -R jstruye:jstruye /home/jstruye/output/$TIMESTAMP
     NEWTIME=$(date +%s%N)
     #sleep $(bc -l <<< $(( 100000000 - $(( $(date +%s%N) - $PREVTIME )) ))/1000000000) &> /dev/null
     PREVTIME=$NEWTIME

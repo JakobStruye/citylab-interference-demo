@@ -34,7 +34,7 @@ while True:
         times = [datetime.datetime.strftime(ts, "%Y-%m-%d_%H-%M-%S.%f")[:-3] for ts in times]
         #times = times[:1200]
         for freq in freqs:
-            print freq
+            print(freq)
             these_times = []
             raw_vals = []
             with open(raw_parse + freq + ".out", 'a') as f:
@@ -43,6 +43,8 @@ while True:
                         signalstr = subprocess.check_output(
                             [basedir + 'citylab-interference-demo/fft_get_max_rssi.out', dump_dir + time, freq])
                         val = int(signalstr)
+                        if val == 0:
+                            continue
                         f.write(time + "," + str(val) +  "\n")
                         raw_vals.append(val)
                         these_times.append(time)

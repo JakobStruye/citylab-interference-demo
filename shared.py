@@ -1,6 +1,6 @@
 
 
-nodes = ["1"]#, "14", "16", "18", "21", "23", "25", "28", "33", "35", "4", "7", "9"]
+nodes = ["70"]#, "14", "16", "18", "21", "23", "25", "28", "33", "35", "4", "7", "9"]
 
 
 channels = dict({
@@ -37,7 +37,7 @@ channels = dict({
 })
 
 freqs = []
-basedir = "/home/citylab-user/"
+basedir = "/home/jstruye/"
 with open(basedir + 'citylab-interference-demo/freqs') as f:
     freqs = f.read().split('\n')[:-1]
 

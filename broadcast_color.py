@@ -43,7 +43,7 @@ color = []
 while True:
     #time.sleep(0.5)
     #Get the 100 most recent measurements
-    recent_smooth_lines = subprocess.check_output(['tail', '-n100', raw_parse_dir_base + "67" + "/" + "2437" + ".out"])
+    recent_smooth_lines = subprocess.check_output(['tail', '-n100', raw_parse_dir_base + "70" + "/" + "2437" + ".out"])
     vals = []
     for line in recent_smooth_lines.split("\n")[:-1]: #-1 for newline at end of file
         vals.append(float(line.split(",")[1]))
@@ -60,12 +60,12 @@ while True:
     perc25 = minval + abs(maxval - minval)  * 0.75
     perc50 = minval + abs(maxval - minval) * 0.5
     perc75 = minval + abs(maxval - minval) * 0.25
-    print perc25
-    print perc50
-    print perc75
+    #print perc25
+    #print perc50
+    #print perc75
     if len(sys.argv) > 1:
         latestval = float(sys.argv[1])
-    print latestval
+    #print latestval
     if latestval > maxval:
         rgb = (1,0,0)
     elif latestval > perc25:
@@ -78,7 +78,7 @@ while True:
         rgb = (0.,  0.65 + 0.35*((latestval - minval) / (perc75 - minval)), 1.)
     else:
         rgb = (0,0,1)
-    print rgb
+    print(rgb)
     #rgbs = [(0,0,1), (0,0.5,0.5), (0,1,0), (0.5,0.5,0), (1,0,0)]
     #percentage = (latestval - minval) / (maxval - minval)
     #percentage = max(0.0, min(1.0,percentage))
@@ -105,8 +105,8 @@ while True:
     #color = colors[sys.argv[2]]
     #color[3] = 30000
     #color = colors["green"]
-    print color
-    print latestval, index
+    print(color)
+    #print latestval, index
     #color = colors["yellow"]
     #Determine intensity based on difference with previous measurement (closer to an extreme <-> brighter)    
     if latestval != prevval:
