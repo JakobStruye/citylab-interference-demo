@@ -11,7 +11,7 @@ if __name__ == '__main__':
   with ThreadPoolExecutor(max_workers=1) as e:
     while True:
         ts = []
-        for node in ["67"]:
+        for node in ["70"]:
             for freq in ["2412", "2437", "2462"]:
                 future = e.submit(run_model, str(node), str(freq))
                 #t.start()

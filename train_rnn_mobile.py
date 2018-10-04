@@ -66,8 +66,9 @@ def train_model(node, freq):
             rnn.save_weights(weights_file)
 
 if __name__ == '__main__':
-    for node in [67]:
+    for node in [70]:
         for freq in freqs:
-            train_model(str(node), str(freq))
+            if int(freq) < 2500:
+                train_model(str(node), str(freq))
 
 

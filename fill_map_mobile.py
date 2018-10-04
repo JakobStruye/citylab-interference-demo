@@ -7,8 +7,7 @@ import datetime
 
 def get_latest_smoothings(freq = None):
     smoothings = dict()
-    print(nodes)
-    for node in ["67"]:
+    for node in ["70"]:
         if freq:
             try:
                 smoothing = subprocess.check_output(['tail', '-1', smooth_dir_base+node+ "/"+ str(freq) + ".out"]).decode('utf-8')

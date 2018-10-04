@@ -91,7 +91,7 @@ public class MyUI extends UI {
 
     private UI ui;
 
-    private int hoursOffset = 8;
+    private int hoursOffset = 0;
     private int predictionStep = 100;
 
 
@@ -136,11 +136,11 @@ public class MyUI extends UI {
             }
         }
         else {
-            nodes.add("67");
+            nodes.add("70");
         }
         nodeBox.setItems(nodes);
         if (isMobile) {
-            node = "67";
+            node = "70";
         }
         nodeBox.setVisible(!isMobile);
 

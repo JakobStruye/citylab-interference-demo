@@ -15,7 +15,7 @@ import sys
 
 def run_model(node, freq):
 
-
+    #print("Running model")
     rnn = Sequential()
     rnn_layer = GRU(units, input_shape=input_shape)
     rnn.add(rnn_layer)
@@ -70,7 +70,7 @@ def run_model(node, freq):
 
 
     #input_smooth_lines = [float(val.split(",")[1]) for val in smooth_lines[:-1]]
-    print(len(input_smooth_lines))
+    print("smooth lines len", len(input_smooth_lines))
     timestamps = [val.split(",")[0] for val in smooth_lines[lb - 1:-1]]
 
 

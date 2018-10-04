@@ -1,4 +1,3 @@
-nodes = ["1", "28"]#, "14", "16", "18", "21", "23", "25", "28", "33", "35", "4", "7", "9"]
 with open("nodes") as f:
     lines = f.read().split("\n")
     nodes = [str(line) for line in lines]
@@ -49,10 +48,10 @@ predict_dir_base = basedir + "predicted/"
 weights_dir_base = "./weights/"
 
 coloring_strategy = 'relative' #'relative' or 'absolute'
-absolute_thresh_red = -20. #Everything above this is red
-absolute_thresh_green = -42 #Everything below this is green
-relative_thresh_red = 0.8 #Red above this fraction
-relative_thresh_green = 0.2 #Green below this fraction
+absolute_thresh_red = -30. #Everything above this is red
+absolute_thresh_green = -60 #Everything below this is green
+relative_thresh_red = 0.7 #Red above this fraction
+relative_thresh_green = 0.3 #Green below this fraction
 
 lb = 300
 pred_step = 100

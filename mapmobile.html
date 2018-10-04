@@ -62,8 +62,10 @@
       var map;
       var olds = []
       var colorMap = new Map();
-21.282850, -157.836143
-      var markers = [{lng: -157.836143, lat: 21.282850},
+//21.282850, -157.836143
+      var markers = [//{lng: -157.836143, lat: 21.282850},
+                    //{lng: 4.420764, lat: 51.184436}, //MIDDELHEIM
+                    {lng: 3.227298, lat:51.209062}, //BRUGES
 //{lng: 4.410840000000001, lat: 51.2218305916},
 //{lng: 4.409477999999999, lat: 51.2199485916},
 //{lng: 4.409815, lat: 51.2204715916},
@@ -104,7 +106,7 @@
         //delete map;
         map = new google.maps.Map(document.getElementById('map'), {
           zoom: 16,
-          center: {lat: 21.282850, lng: -157.836143}
+          center: {lng: 3.227298, lat:51.209062}
         });
 
         // new google.maps.KmlLayer({
@@ -203,7 +205,7 @@
         // Color each letter gray. Change the color when the isColorful property
         // is set to true.
         $.get("nodes_mobile_colors.txt?nonce=" + Math.random().toString(36).substring(7), function(data) {
-            //console.log("Here's the file data: "+data);
+            console.log("Here's the file data: "+data);
             data = data.split("\n");
 
             for (var i = 0; i < data.length - 1; i++) {
@@ -215,6 +217,7 @@
         map.data.forEach(function(feature) {
             // filter...
             feature.setProperty("thecolor", colorMap.get(feature.getProperty("color")))
+            console.log(feature.getProperty("color"))
             color = colorMap.get(feature.getProperty("color"))
             var vis;
             if (color.includes("NODE")) {
@@ -246,6 +249,7 @@
       function addMarker(location, map) {
         // Add the marker at the clicked location, and add the next-available label
         // from the array of alphabetical characters.
+        console.log("ADD MARKER")
         var marker = new google.maps.Marker({
           position: location,
           label: labels[labelIndex++ % labels.length],
@@ -254,7 +258,7 @@
           color: "blue",
 //          icon: "bluemarker.png"
         });
-        console.log(marker);
+        console.log(location);
       }
 
     </script>
