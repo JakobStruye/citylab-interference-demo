@@ -6,7 +6,7 @@ import subprocess
 from shared import *
 from platform import uname
 from time import sleep
-
+sleep(60)
 #freqs = channels.values()
 while True:
     sleep(1)
