@@ -1,0 +1,12 @@
+[Unit]
+Description=Spectral scanner
+After=network.target network-online.target local-fs.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/users/jstruye/citylab-interference-demo/run_scan24.sh
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

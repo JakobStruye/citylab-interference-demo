@@ -48,6 +48,8 @@
 //#include <SDL_ttf.h>
 #include <inttypes.h>
 #include <unistd.h>
+#include <time.h>
+#include <stdlib.h>
 
 typedef int8_t s8;
 typedef uint8_t u8;
@@ -395,7 +397,6 @@ int main(int argc, char *argv[]) {
     int channel_freq = 0;
     int val = 0;
     double percentile = 0.95;
-
     if (argc >= 1)
         prog = argv[1];
 
@@ -459,7 +460,6 @@ int main(int argc, char *argv[]) {
             val = result->sample.ath10k.header.noise + result->sample.ath10k.header.rssi;
             rssi_arr[counter] = val;
             counter++;
-            printf("%d\n", val);
             if ((val) > max_signal) {
                 max_signal = val;
             }
@@ -482,7 +482,30 @@ int main(int argc, char *argv[]) {
     //   printf("%d\n", rssi_arr[j]);
     //}
 
-    printf("%d\n", rssi_arr[(int) round(counter * percentile) - 1]);
+    //printf("%d\n", rssi_arr[(int) round(counter * percentile) - 1]);
+    struct timespec t;
+    clock_gettime(CLOCK_REALTIME, &t);
+    char **endp;
+    uint64_t millitime = strtol(argv[2], NULL, 0);//S64(argv[3]);
+    //printf("%x\n", millitime);
+    //printf("%" PRId64, millitime);
+    //printf("0x%" PRIx64 "\n", millitime);
+    FILE* outfile = fopen(argv[3], "a");
+    for (int shifter=0; shifter < 64; shifter += 8) {    
+        fprintf(outfile, "%c", (unsigned int) ((millitime >> (56 - shifter)) &0xFF));
+    }
+    unsigned short meas_count = sizeof(rssi_arr)/sizeof(rssi_arr[0]);
+    for (int shifter=0; shifter < 16; shifter += 8) {
+        fprintf(outfile, "%c", (unsigned int) ((meas_count >> (8 - shifter)) & 0xFF));
+    }
+    for(int j=0; j<sizeof(rssi_arr)/sizeof(rssi_arr[0]); j++) {
+        //printf("%x", ((char) rssi_arr[j]) & 0xff );
+        //printf("%d \n", rssi_arr[j]);
+        fprintf(outfile, "%c", (char) rssi_arr[j]);
+    }
+    //fprintf(outfile, "\n");
+    fclose(outfile);
+    //printf("%d\n", sizeof(rssi_arr) / sizeof(rssi_arr[0]));
     //avg_signal /= counter;
     //printf("%d\n", avg_signal);
     //printf("%d\n", counter);

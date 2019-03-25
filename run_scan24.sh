@@ -46,8 +46,9 @@ DOFIVE=true
 while true
 do
     TOSECOND=1000000000
-    INTERVAL=3
-    TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S.%3N")
+    INTERVAL=1
+    #TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S.%3N")
+    TIMESTAMP=$(date +%s%3N)
     NOW=$(date +%s%N)
 
     if [ $NOW -lt $NEXT ]
@@ -62,10 +63,12 @@ do
     #/sbin/iw dev $devname scan freq 2412 2417 2422 2427 2432 2437 2442 2447 2452 2457 2462 & kill $! #Will probably fail
     #echo "Scan 1 complete"
     if [ "$DOFIVE" = true ] ; then
-      /sbin/iw dev $devname scan freq 5180 5200 5220 5240 5260 5280 5300 5320 5500 5520 5540 5560 5580 5600 5620 5640 5660 5680 5700 &> /dev/null
+      #/sbin/iw dev $devname scan freq 5180 5200 5220 5240 5260 5280 5300 5320 5500 5520 5540 5560 5580 5600 5620 5640 5660 5680 5700 &> /dev/null
+      /sbin/iw dev $devname scan freq 5180 5200 5220 5240 &> /dev/null
       DOFIVE=false
     else
-      /sbin/iw dev $devname scan freq 2412 2417 2422 2427 2432 2437 2442 2447 2452 2457 2462 &> /dev/null
+      #/sbin/iw dev $devname scan freq 2412 2417 2422 2427 2432 2437 2442 2447 2452 2457 2462 &> /dev/null
+      /sbin/iw dev $devname scan freq 2412 2437 2462 &> /dev/null
       DOFIVE=true
     fi
      #Will probably work

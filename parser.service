@@ -1,0 +1,13 @@
+[Unit]
+Description=Spectral scanner parser
+After=network.target network-online.target local-fs.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/users/jstruye/citylab-interference-demo/venv/bin/python /users/jstruye/citylab-interference-demo/parse_running.py
+WorkingDirectory=/users/jstruye/citylab-interference-demo/
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
