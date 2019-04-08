@@ -482,7 +482,6 @@ int main(int argc, char *argv[]) {
     //   printf("%d\n", rssi_arr[j]);
     //}
 
-    //printf("%d\n", rssi_arr[(int) round(counter * percentile) - 1]);
     struct timespec t;
     clock_gettime(CLOCK_REALTIME, &t);
     char **endp;
@@ -491,6 +490,7 @@ int main(int argc, char *argv[]) {
     //printf("%" PRId64, millitime);
     //printf("0x%" PRIx64 "\n", millitime);
     FILE* outfile = fopen(argv[3], "a");
+    FILE* outfile2 = fopen(argv[4], "a");
     for (int shifter=0; shifter < 64; shifter += 8) {    
         fprintf(outfile, "%c", (unsigned int) ((millitime >> (56 - shifter)) &0xFF));
     }
@@ -503,8 +503,11 @@ int main(int argc, char *argv[]) {
         //printf("%d \n", rssi_arr[j]);
         fprintf(outfile, "%c", (char) rssi_arr[j]);
     }
+
+    fprintf(outfile2, "%d\n", rssi_arr[(int) round(counter * percentile) - 1]);
     //fprintf(outfile, "\n");
     fclose(outfile);
+    fclose(outfile2);
     //printf("%d\n", sizeof(rssi_arr) / sizeof(rssi_arr[0]));
     //avg_signal /= counter;
     //printf("%d\n", avg_signal);

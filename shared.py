@@ -43,7 +43,7 @@ with open('freqs') as f:
 basedir = "/users/jstruye/"
 dump_dir_base = basedir + "output/"
 raw_parse_dir_base = basedir + "raw_parse/"
-smooth_dir_base = basedir + "smoothed/"
+smooth_dir_base = basedir + "mount/" #"smoothed/"
 predict_dir_base = basedir + "predicted/"
 
 weights_dir_base = "./weights/"

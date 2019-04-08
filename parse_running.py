@@ -16,8 +16,11 @@ while True:
     nodes = [uname()[1].split(".")[0][4:]]
     for node in nodes:
         raw_parse = raw_parse_dir_base + node + "/"
+        smooth_dir_new = smooth_dir_base + node + "/"
         if not exists(raw_parse):
             makedirs(raw_parse)
+        if not exists(smooth_dir_new):
+            makedirs(smooth_dir_new)
         dump_dir = dump_dir_base# + node + "/output/"
         smooth_dir = smooth_dir_base# + node + "/output/"
         if not exists(smooth_dir):
@@ -43,7 +46,7 @@ while True:
                 for time in times:
                     if (stat(dump_dir + time).st_size > 60000) == (int(freq) > 4000):
                         signalstr = subprocess.check_output(
-                            ['./fft_get_max_rssi.out', dump_dir + time, freq, time, raw_parse + freq + ".out"])
+                            ['./fft_get_max_rssi.out', dump_dir + time, freq, time, raw_parse + freq + ".out", smooth_dir_new + freq + ".out"])
                         #val = int(signalstr)
                         #f.write(time + "," + str(val) +  "\n")
                         #raw_vals.append(val)
