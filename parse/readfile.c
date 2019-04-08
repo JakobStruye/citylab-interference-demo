@@ -10,7 +10,7 @@ int main ()
   FILE * fileptr;
   unsigned char *buffer;
   int filelen;
-  fileptr=fopen ("../../raw_parse/a/5240.out","rb");
+  fileptr=fopen ("../../raw_parse/74/5240.out","rb");
   fseek(fileptr, 0, SEEK_END);
   filelen = ftell(fileptr);
   rewind(fileptr);
@@ -39,15 +39,18 @@ int main ()
               printf("Count: %u\n", vals);
           }
       } else {
-          char val = *(char*) &(buffer[i]);
-          printf("%d\n", (int) val);
-          valctr++;
+          if (vals > 0) {
+              char val = *(char*) &(buffer[i]);
+              //printf("%d\n", (int) val);
+              valctr++;
+          }
           if (valctr == vals) {
               //SKIP 1
-              if (buffer[i+1] != 0) {
+              if (vals > 0 && buffer[i+1] != 0) {
                   printf("BAD");
+              } else if (vals > 0) {
+                  i++;
               }
-              i++;
               vals = 0;
               valctr = 0;
               ctr = 0;
