@@ -8,6 +8,11 @@ from platform import uname
 from time import sleep
 #sleep(60)
 #freqs = channels.values()
+class NoVals(Exception):
+    pass
+no_vals = NoVals()
+
+
 while True:
     sleep(1)
     freqs.sort()
@@ -50,10 +55,14 @@ while True:
                     if (stat(dump_dir + time).st_size > 60000) == (int(freq) > 4000):
                         signalstr = subprocess.check_output(
                             ['./fft_get_max_rssi.out', dump_dir + time, freq, time, raw_parse + freq + ".out", smooth_dir_new + freq + ".out"])
-                        val = int(signalstr)
-                        #f.write(time + "," + str(val) +  "\n")
-                        raw_vals.append(val)
-                        these_times.append(time)
+                        try:
+                            val = int(signalstr)
+                            #f.write(time + "," + str(val) +  "\n")
+                            raw_vals.append(val)
+                            these_times.append(time)
+                        except:
+                            raw_vals.append(0)
+                            these_times.append(0)
 
             smooth_file = verysmooth_dir_new + freq + ".out"
             if exists(smooth_file) and stat(smooth_file).st_size > 0:
@@ -66,6 +75,8 @@ while True:
                 smooth_vals = []
                 prev_val = smooth_val
                 for i in range(len(raw_vals)):
+                    if raw_vals[i] == 0:
+                        continue
                     val = prev_val * 0.96 + raw_vals[i] * 0.04
                     smooth_vals.append(val)
                     smooth_f.write(these_times[i] + "," + str(val) + "\n")

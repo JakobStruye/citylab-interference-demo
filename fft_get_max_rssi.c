@@ -456,6 +456,9 @@ int main(int argc, char *argv[]) {
 	
         if (argc < 2) {
             val = result->sample.ath10k.header.noise + result->sample.ath10k.header.rssi;
+            if (val >= 0) {
+                continue;
+            }
             rssi_arr[counter] = val;
             counter++;
             if ((val) > max_signal) {
@@ -465,6 +468,9 @@ int main(int argc, char *argv[]) {
             if (result->sample.ath10k.header.freq1 == channel_freq) {
                 val = result->sample.ath10k.header.noise + result->sample.ath10k.header.rssi;
                 //printf("%d\n", val);
+                if (val >= 0) {
+                    continue;
+                }
                 rssi_arr[counter] = val;
                 counter++;
                 avg_signal += val;
@@ -474,6 +480,9 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
+    }
+    if (counter == 0) {
+        return 0;
     }
     qsort(rssi_arr, counter, sizeof(int), compare);
     //for (int j = 0; j < counter; j++) {
