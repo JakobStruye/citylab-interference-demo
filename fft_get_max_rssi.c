@@ -243,7 +243,6 @@ static int read_scandata(char *fname) {
     struct fft_sample_tlv *tlv;
     struct scanresult *tail = result_list;
     int handled, bins;
-
     scandata = read_file(fname, &len);
     if (!scandata)
         return -1;
@@ -453,7 +452,6 @@ int main(int argc, char *argv[]) {
 
     int rssi_arr[counter];
     counter = 0;
-
     for (result = result_list; result; result = result->next) {
 	
         if (argc < 2) {
@@ -489,24 +487,26 @@ int main(int argc, char *argv[]) {
     //printf("%x\n", millitime);
     //printf("%" PRId64, millitime);
     //printf("0x%" PRIx64 "\n", millitime);
-    FILE* outfile = fopen(argv[3], "a");
+    //FILE* outfile = fopen(argv[3], "a");
     FILE* outfile2 = fopen(argv[4], "a");
-    for (int shifter=0; shifter < 64; shifter += 8) {    
-        fprintf(outfile, "%c", (unsigned int) ((millitime >> (56 - shifter)) &0xFF));
-    }
-    unsigned short meas_count = sizeof(rssi_arr)/sizeof(rssi_arr[0]);
-    for (int shifter=0; shifter < 16; shifter += 8) {
-        fprintf(outfile, "%c", (unsigned int) ((meas_count >> (8 - shifter)) & 0xFF));
-    }
-    for(int j=0; j<sizeof(rssi_arr)/sizeof(rssi_arr[0]); j++) {
-        //printf("%x", ((char) rssi_arr[j]) & 0xff );
-        //printf("%d \n", rssi_arr[j]);
-        fprintf(outfile, "%c", (char) rssi_arr[j]);
-    }
+    //for (int shifter=0; shifter < 64; shifter += 8) {    
+    //    printf("%c", (unsigned int) millitime);
+    //    fprintf(outfile, "%c", (unsigned int) ((millitime >> (56 - shifter)) &0xFF));
+    //}
+    //unsigned short meas_count = sizeof(rssi_arr)/sizeof(rssi_arr[0]);
+    //for (int shifter=0; shifter < 16; shifter += 8) {
+    //    fprintf(outfile, "%c", (unsigned int) ((meas_count >> (8 - shifter)) & 0xFF));
+    //}
+    //for(int j=0; j<sizeof(rssi_arr)/sizeof(rssi_arr[0]); j++) {
+    //    //printf("%x", ((char) rssi_arr[j]) & 0xff );
+    //    //printf("%d \n", rssi_arr[j]);
+    //    fprintf(outfile, "%c", (char) rssi_arr[j]);
+    //}
 
-    fprintf(outfile2, "%d\n", rssi_arr[(int) round(counter * percentile) - 1]);
+    fprintf(outfile2, "%"PRIu64",%d\n", millitime, rssi_arr[(int) round(counter * percentile) - 1]);
+    printf("%d\n",rssi_arr[(int) round(counter * percentile) - 1]);
     //fprintf(outfile, "\n");
-    fclose(outfile);
+    //fclose(outfile);
     fclose(outfile2);
     //printf("%d\n", sizeof(rssi_arr) / sizeof(rssi_arr[0]));
     //avg_signal /= counter;
