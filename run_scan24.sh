@@ -48,8 +48,10 @@ DOFIVE=true
 while true
 do
     TOSECOND=1000000000
-    INTERVAL=0
-    TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S.%3N")
+    TOMILSECOND=1000000
+    INTERVAL=500
+    #TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S.%3N")
+    TIMESTAMP=$(date +%s%3N)
     NOW=$(date +%s%N)
 
     if [ $NOW -lt $NEXT ]
@@ -60,7 +62,7 @@ do
     fi
     sleep 0.05
     echo "Scanning"
-    NEXT=$(( $NEXT + $TOSECOND * $INTERVAL ))
+    NEXT=$(( $NEXT + $TOMILSECOND * $INTERVAL ))
     echo background > $ATHPATH/spectral_scan_ctl
     echo trigger > $ATHPATH/spectral_scan_ctl
     #echo "Set pre-scan values; scanning..."

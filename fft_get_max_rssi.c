@@ -48,6 +48,8 @@
 //#include <SDL_ttf.h>
 #include <inttypes.h>
 #include <unistd.h>
+#include <time.h>
+#include <stdlib.h>
 
 typedef int8_t s8;
 typedef uint8_t u8;
@@ -241,7 +243,6 @@ static int read_scandata(char *fname) {
     struct fft_sample_tlv *tlv;
     struct scanresult *tail = result_list;
     int handled, bins;
-
     scandata = read_file(fname, &len);
     if (!scandata)
         return -1;
@@ -395,7 +396,6 @@ int main(int argc, char *argv[]) {
     int channel_freq = 0;
     int val = 0;
     double percentile = 0.95;
-
     if (argc >= 1)
         prog = argv[1];
 
@@ -452,14 +452,15 @@ int main(int argc, char *argv[]) {
 
     int rssi_arr[counter];
     counter = 0;
-
     for (result = result_list; result; result = result->next) {
 	
         if (argc < 2) {
             val = result->sample.ath10k.header.noise + result->sample.ath10k.header.rssi;
+            if (val >= 0) {
+                continue;
+            }
             rssi_arr[counter] = val;
             counter++;
-            printf("%d\n", val);
             if ((val) > max_signal) {
                 max_signal = val;
             }
@@ -467,6 +468,9 @@ int main(int argc, char *argv[]) {
             if (result->sample.ath10k.header.freq1 == channel_freq) {
                 val = result->sample.ath10k.header.noise + result->sample.ath10k.header.rssi;
                 //printf("%d\n", val);
+                if (val >= 0) {
+                    continue;
+                }
                 rssi_arr[counter] = val;
                 counter++;
                 avg_signal += val;
@@ -477,12 +481,43 @@ int main(int argc, char *argv[]) {
             }
         }
     }
+    if (counter == 0) {
+        return 0;
+    }
     qsort(rssi_arr, counter, sizeof(int), compare);
     //for (int j = 0; j < counter; j++) {
     //   printf("%d\n", rssi_arr[j]);
     //}
 
-    printf("%d\n", rssi_arr[(int) round(counter * percentile) - 1]);
+    struct timespec t;
+    clock_gettime(CLOCK_REALTIME, &t);
+    char **endp;
+    uint64_t millitime = strtol(argv[2], NULL, 0);//S64(argv[3]);
+    //printf("%x\n", millitime);
+    //printf("%" PRId64, millitime);
+    //printf("0x%" PRIx64 "\n", millitime);
+    //FILE* outfile = fopen(argv[3], "a");
+    FILE* outfile2 = fopen(argv[4], "a");
+    //for (int shifter=0; shifter < 64; shifter += 8) {    
+    //    printf("%c", (unsigned int) millitime);
+    //    fprintf(outfile, "%c", (unsigned int) ((millitime >> (56 - shifter)) &0xFF));
+    //}
+    //unsigned short meas_count = sizeof(rssi_arr)/sizeof(rssi_arr[0]);
+    //for (int shifter=0; shifter < 16; shifter += 8) {
+    //    fprintf(outfile, "%c", (unsigned int) ((meas_count >> (8 - shifter)) & 0xFF));
+    //}
+    //for(int j=0; j<sizeof(rssi_arr)/sizeof(rssi_arr[0]); j++) {
+    //    //printf("%x", ((char) rssi_arr[j]) & 0xff );
+    //    //printf("%d \n", rssi_arr[j]);
+    //    fprintf(outfile, "%c", (char) rssi_arr[j]);
+    //}
+
+    fprintf(outfile2, "%"PRIu64",%d\n", millitime, rssi_arr[(int) round(counter * percentile) - 1]);
+    printf("%d\n",rssi_arr[(int) round(counter * percentile) - 1]);
+    //fprintf(outfile, "\n");
+    //fclose(outfile);
+    fclose(outfile2);
+    //printf("%d\n", sizeof(rssi_arr) / sizeof(rssi_arr[0]));
     //avg_signal /= counter;
     //printf("%d\n", avg_signal);
     //printf("%d\n", counter);

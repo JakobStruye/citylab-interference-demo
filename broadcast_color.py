@@ -41,10 +41,11 @@ prevval = 0
 previndex = -1
 color = []
 while True:
-    #time.sleep(0.5)
+    time.sleep(0.1)
     #Get the 100 most recent measurements
-    recent_smooth_lines = subprocess.check_output(['tail', '-n100', raw_parse_dir_base + "70" + "/" + "2437" + ".out"])
+    recent_smooth_lines = subprocess.check_output(['tail', '-n100', raw_parse_dir_base + "51" + "/" + "2437" + ".out"])
     vals = []
+    recent_smooth_lines = recent_smooth_lines.decode("UTF-8")
     for line in recent_smooth_lines.split("\n")[:-1]: #-1 for newline at end of file
         vals.append(float(line.split(",")[1]))
     latestval = vals[-1]
@@ -55,8 +56,8 @@ while True:
     #if latestval < -85:
     #    rgb = (0,0,1)
     color = colors["red"]
-    minval = -65
-    maxval = 0
+    minval = -90
+    maxval = -60
     perc25 = minval + abs(maxval - minval)  * 0.75
     perc50 = minval + abs(maxval - minval) * 0.5
     perc75 = minval + abs(maxval - minval) * 0.25
