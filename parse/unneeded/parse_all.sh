@@ -6,8 +6,7 @@ for node in $nodes
 do
 	for freq in $freqs
 	do
-		./a.out $node $freq time > parsed/$node-$freq-time
-		./a.out $node $freq vals 95 > parsed/$node-$freq
+		python smooth.py $node $freq
 	done
 done
 

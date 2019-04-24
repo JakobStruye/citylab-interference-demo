@@ -10,7 +10,7 @@ int main (int argc, char* argv[])
   FILE * fileptr;
   unsigned char *buffer;
   int filelen;
-  fileptr=fopen (("/mnt/hgfs/host/" + std::string(argv[1]) + "/" + std::string(argv[2]) + ".out").c_str(),"rb");
+  fileptr=fopen (("/home/jstruye/cot/" + std::string(argv[1]) + "/" + std::string(argv[2]) + ".out").c_str(),"rb");
   fseek(fileptr, 0, SEEK_END);
   filelen = ftell(fileptr);
   rewind(fileptr);
@@ -45,13 +45,17 @@ int main (int argc, char* argv[])
       } else {
           if (vals > 0) {
               char val = *(char*) &(buffer[i]);
-	      if (std::string(argv[3]) == "vals") {
+	      if (std::string(argv[3]) == "vals" || std::string(argv[3]) == "both") {
 		 if ( defer || valctr == (int) (atoi(argv[4]) / 100.0 * vals)) {
                      if ((int) val < -110 || (int) val > 0) {
 		         defer=true;
 	             }
-                     else {		     
-                         printf("%d\n", (int) val);
+                     else {
+			 if (std::string(argv[3]) == "vals") {
+                             printf("%d\n", (int) val);
+			 } else {	  
+                             printf("%" PRIu64 " %d\n", time, (int) val);
+			 }
 			 defer=false;
 		     }
 	          }

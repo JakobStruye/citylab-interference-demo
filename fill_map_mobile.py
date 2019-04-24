@@ -7,12 +7,14 @@ import datetime
 
 def get_latest_smoothings(freq = None):
     smoothings = dict()
-    for node in ["70"]:
+    for node in ["51"]:
         if freq:
             try:
-                smoothing = subprocess.check_output(['tail', '-1', smooth_dir_base+node+ "/"+ str(freq) + ".out"]).decode('utf-8')
+                smoothing = subprocess.check_output(['tail', '-1', "/home/jstruye/outs/" +node+ "/"+ str(freq) + ".out"]).decode('utf-8')
                 smoothings[node] = float(smoothing.split(",")[1])
-                thisdate = datetime.datetime.strptime(smoothing.split(",")[0], "%Y-%m-%d_%H-%M-%S.%f")
+                print(smoothing)
+                #thisdate = datetime.datetime.strptime(smoothing.split(",")[0], "%Y-%m-%d_%H-%M-%S.%f")
+                thisdate = datetime.datetime.now() + datetime.timedelta(hours=2)
             except:
                 print("Couldn't fetch for node", node)
     with open("latest_date_mobile", "w") as f:
@@ -25,6 +27,7 @@ def get_colors(smoothings):
     smoothing_divisor = float(len(sorted_smoothings) - 1)
     colors = dict()
     ctr = 0
+    print("GETTING COLORS")
     for smoothing in sorted_smoothings:
         #if coloring_strategy == 'relative':
         #    if ctr / smoothing_divisor < relative_thresh_green:
@@ -33,7 +36,7 @@ def get_colors(smoothings):
         #        color = 'red'
         #    else:
         #        color = 'yellow'
-        print smoothing[1]
+        print("SMOOTH", smoothing[1])
         if True:
             if smoothing[1] < absolute_thresh_green:
                 color = 'blue'
@@ -76,4 +79,4 @@ if __name__ =='__main__':
             build_map()
         except:
             pass
-        sleep(3)
+        sleep(0.5)

@@ -1,1 +1,1 @@
-node70,blue
+node51,blue

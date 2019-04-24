@@ -1,5 +1,7 @@
 package be.uantwerpen.idlab;
 
+import java.util.Collections;
+
 import javax.servlet.annotation.WebServlet;
 
 import com.byteowls.vaadin.chartjs.ChartJs;
@@ -43,6 +45,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Date;
 import java.util.Iterator;
@@ -91,14 +94,14 @@ public class MyUI extends UI {
 
     private UI ui;
 
-    private int hoursOffset = 0;
-    private int predictionStep = 100;
+    private int hoursOffset = 2;
+    private int predictionStep = 10*30;
 
 
     private ArrayList<Double> data3 = new ArrayList<>();
      private    List<String> zeroLabels = new ArrayList<>();
     private     ArrayList<Double> data2 = new ArrayList<>();
-    private     ArrayList<Double> data = new ArrayList<>();
+    private     List<Double> data = new LinkedList<>();
     private     ArrayList<Double> timestamps = new ArrayList<>();
     private     ArrayList<String> timestampsNice = new ArrayList<>();
     private     ArrayList<String> timestampsRaw = new ArrayList<>();
@@ -136,11 +139,11 @@ public class MyUI extends UI {
             }
         }
         else {
-            nodes.add("70");
+            nodes.add("51");
         }
         nodeBox.setItems(nodes);
         if (isMobile) {
-            node = "70";
+            node = "51";
         }
         nodeBox.setVisible(!isMobile);
 
@@ -456,11 +459,11 @@ public class MyUI extends UI {
         timestamps.clear();
         timestampsRaw.clear();
         timestampsNice.clear();
-        System.out.println(directory.toString() + "../smoothed/" + node + "/" + freq + ".out");
+        System.out.println(directory.toString() + "/" + node + "/" + freq + ".out");
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss.SSS");
         SimpleDateFormat formatter2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String mostRecentDate = null;
-        try (Stream<String> br = Files.lines(Paths.get(directory.toString(), "../smoothed/" + node + "/" + freq + ".out"))) {
+        try (Stream<String> br = Files.lines(Paths.get(directory.toString(), "../outs/verysmooth/" + node + "/" + freq  + ".out"))) {
             //String line;
             for (String line: (Iterable<String>) br::iterator) {
             //while ((line = br.readLine()) != null) {
@@ -478,19 +481,21 @@ public class MyUI extends UI {
                 data3.add(val);
                 //System.out.println(splits[0]);
                 timestampsRaw.add(splits[0]);
-                Date date = formatter.parse(splits[0]); 
-                long epoch = date.getTime();
-                epoch += hoursOffset * 3600 * 1000;
-                double unixdate = epoch / 1000.0;
+                //Date date = formatter.parse(splits[0]); 
+                //long epoch = date.getTime();
+                //epoch += hoursOffset * 3600 * 1000;
+                //double unixdate = epoch / 1000.0;
+		Double unixdate = new Double(splits[0]) + hoursOffset * 3600 * 1000;
                 //System.out.println(unixdate);
                 //System.out.printf("dexp: %f\n", unixdate);
 
                 timestamps.add(unixdate);
-                String niceDate = formatter2.format(new Date(epoch));
+                //String niceDate = formatter2.format(new Date(epoch));
+                String niceDate = formatter2.format(new Date(new Long(splits[0]) + hoursOffset * 3600 * 1000));
                 mostRecentDate = niceDate;
                 timestampsNice.add(niceDate);
                 } catch (Exception e) {
-                    //e.printStackTrace();
+                    e.printStackTrace();
                     System.out.println("Failed to parse line:" + line);
                 }
                 
@@ -506,7 +511,7 @@ public class MyUI extends UI {
         }
         System.out.println("MOSTR");
         // generate data
-        try (BufferedReader br = new BufferedReader(new FileReader(Paths.get(directory.toString(), "../predicted/" + node + "/" + freq + ".out").toString()))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(Paths.get(directory.toString(), "parse/thepredicts/" + node + "/" + freq + ".out").toString()))) {
             String line;
             while ((line = br.readLine()) != null) {
                 try {
@@ -536,11 +541,17 @@ public class MyUI extends UI {
             e.printStackTrace();
         }
         int diff = predictionStep + data3.size() - data.size();
+	System.out.println("DIFF" + diff);
         for (int i = 0; i < diff ; i++) {
             data.add(0, 0.0);
+            //data.add(0.0); //TEMP FIX UNHACK PLS
         }
+	//data = new ArrayList<Double>(Collections.nCopies(diff, 0.0));
+	System.out.println("Added");
         data2.addAll(data);
+	System.out.println("Added");
         System.out.println("" + data.size() + " vs " + data3.size());
+	System.out.println("Added");
 
 
         // generate data
@@ -550,7 +561,7 @@ public class MyUI extends UI {
         for (int i=0; i < predictionStep; i++) {
             Double newepoch = timestamps.get(timestamps.size()-1) + 6.0;
             timestamps.add(newepoch);
-            timestampsNice.add(formatter2.format(new Date(newepoch.longValue() * 1000L)));
+            timestampsNice.add(formatter2.format(new Date(newepoch.longValue() )));
         }
         System.out.println(mostRecentDate.toString());
         DecimalFormat df = new DecimalFormat("#");
@@ -570,7 +581,8 @@ public class MyUI extends UI {
         switch(this.windowRange) {
             case LONGRANGE:
                 //24h
-                startPoint = timestamps.get(timestamps.size() - 1) - (24*60*60);
+		System.out.println("LONG" +  timestamps.get(timestamps.size()-1).toString());
+                startPoint = timestamps.get(data3.size() - 1) - (24*60*60 * 1000);
                 skips = 0;
                 for (Double date : timestamps) {
                     if (date < startPoint) {
@@ -584,7 +596,7 @@ public class MyUI extends UI {
                 break;
             case SHORTRANGE:
                 //30min
-                startPoint = timestamps.get(timestamps.size() - 1) - (30*60);
+                startPoint = timestamps.get(data3.size() - 1) - (30*60 * 1000);
                 skips = 0;
                 for (Double date : timestamps) {
                     if (date < startPoint) {
@@ -593,7 +605,6 @@ public class MyUI extends UI {
                         break;
                     }
                 }
-                System.out.println("skips" + skips);
                 windowMin = zeroLabels.get(skips);
                 windowMax = zeroLabels.get(zeroLabels.size() - 1);
                 break;
@@ -603,13 +614,23 @@ public class MyUI extends UI {
                 break;
 
         }
+	System.out.println("SKIPS" + skips);
+	System.out.println("REMAINS" + (data3.size() - skips));
+	System.out.println(data.size());
         data.subList(0,skips).clear();
+	System.out.println("Clearing");
         data2.subList(0,skips).clear();
+	System.out.println("Clearing");
         data3.subList(0,skips).clear();
+	System.out.println("Clearing");
         zeroLabels.subList(0,skips).clear();
+	System.out.println("Clearing");
         timestamps.subList(0,skips).clear();
+	System.out.println("Clearing");
         timestampsRaw.subList(0,skips).clear();
+	System.out.println("Clearing");
         timestampsNice.subList(0,skips).clear();
+	System.out.println("Clearing");
 
         config
                 .data()
@@ -624,6 +645,7 @@ public class MyUI extends UI {
                     .and())
                 .and();
         ((ChartJs) this.chartComponent).update(); 
+	System.out.println("Updating");
 
         //if (nonce != null) {
             ui.accessSynchronously(new Runnable() {

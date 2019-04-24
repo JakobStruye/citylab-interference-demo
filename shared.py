@@ -48,8 +48,8 @@ predict_dir_base = basedir + "predicted/"
 weights_dir_base = "./weights/"
 
 coloring_strategy = 'relative' #'relative' or 'absolute'
-absolute_thresh_red = -30. #Everything above this is red
-absolute_thresh_green = -60 #Everything below this is green
+absolute_thresh_red = -70. #Everything above this is red
+absolute_thresh_green = -80 #Everything below this is green
 relative_thresh_red = 0.7 #Red above this fraction
 relative_thresh_green = 0.3 #Green below this fraction
 
